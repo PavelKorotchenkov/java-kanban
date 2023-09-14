@@ -12,11 +12,11 @@ public class TaskManager {
         return new ArrayList<>(tasks.values());
     }
 
-    public ArrayList<Task> getEpictasksList() {
+    public ArrayList<Epictask> getEpictasksList() {
         return new ArrayList<>(epictasks.values());
     }
 
-    public ArrayList<Task> getSubtasksList() {
+    public ArrayList<Subtask> getSubtasksList() {
         return new ArrayList<>(subtasks.values());
     }
 
@@ -41,7 +41,6 @@ public class TaskManager {
         return true;
     }
 
-    //А если кто-то попытается в Main вызвать метод у класса-наследника, которого нет в классе-родителе?
     public Task getTaskById(int taskId) {
         if (tasks.containsKey(taskId)) {
             return tasks.get(taskId);
@@ -67,13 +66,13 @@ public class TaskManager {
         return task;
     }
 
-    public Task createNewEpictask(Epictask task) {
+    public Epictask createNewEpictask(Epictask task) {
         task.setId(++taskId);
         epictasks.put(taskId, task);
         return task;
     }
 
-    public Task createNewSubtask(Subtask task) {
+    public Subtask createNewSubtask(Subtask task) {
         task.setId(++taskId);
         subtasks.put(taskId, task);
         checkStatus(task.getEpicTask());
@@ -81,45 +80,48 @@ public class TaskManager {
     }
 
     //fixed: разбить метод обновления задачи на 3 метода
-    public Task updateTask(Task task) {
+    public boolean updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
             tasks.put(task.getId(), task);
+            return true;
         }
 
-        return task;
+        return false;
     }
 
-    public Task updateEpictask(Epictask task) {
+    public boolean updateEpictask(Epictask task) {
         if (epictasks.containsKey(task.getId())) {
             epictasks.put(task.getId(), task);
+            return true;
         }
 
-        return task;
+        return false;
     }
 
-    public Task updateSubtask(Subtask task) {
+    public boolean updateSubtask(Subtask task) {
         if (subtasks.containsKey(task.getId())) {
             subtasks.put(task.getId(), task);
             checkStatus(task.getEpicTask());
+            return true;
         }
 
-        return task;
+        return false;
     }
 
     //feat: добавлен метод обновления статуса у эпика + refactor
     private void checkStatus(Epictask task) {
         int subtasksAmount = getSubtasks(task.getId()).size();
-        int countProgress = 0;
+        int countNew = 0;
         int countDone = 0;
         for (Subtask t : getSubtasks(task.getId())) {
-            if (t.getStatus().equals(Status.IN_PROGRESS)) {
-                countProgress++;
+            if (t.getStatus().equals(Status.NEW)) {
+                countNew++;
             } else if (t.getStatus().equals(Status.DONE)) {
                 countDone++;
             }
         }
 
-        if (countProgress == 0 && countDone == 0) {
+        if (countNew == subtasksAmount) {
             task.setStatus(Status.NEW);
             return;
         }
@@ -134,46 +136,30 @@ public class TaskManager {
 
     //fixed: разбить общий метод удаления по ID на 3 отдельных
     public Task deleteTaskById(int taskId) {
-        if (tasks.containsKey(taskId)) {
-            return tasks.remove(taskId);
-        }
-
-        return null;
+        return tasks.remove(taskId);
     }
 
-    public Task deleteEpictaskById(int taskId) {
-        if (epictasks.containsKey(taskId)) {
-            Epictask epictask = epictasks.remove(taskId);
+    public Epictask deleteEpictaskById(int taskId) {
+        Epictask epictask = epictasks.remove(taskId);
 
-            for (Subtask subtask : epictask.subtasks) {
-                subtasks.remove(subtask.getId());
-            }
-
-            return epictask;
+        for (Subtask subtask : epictask.subtasks) {
+            subtasks.remove(subtask.getId());
         }
 
-        return null;
+        return epictask;
     }
 
-    public Task deleteSubtaskById(int taskId) {
-        if (subtasks.containsKey(taskId)) {
-            Subtask subtask = subtasks.remove(taskId);
-            Epictask epictask = subtask.getEpicTask();
-            checkStatus(epictask);
-            epictask.subtasks.remove(subtask);
+    public Subtask deleteSubtaskById(int taskId) {
+        Subtask subtask = subtasks.remove(taskId);
+        Epictask epictask = subtask.getEpicTask();
+        checkStatus(epictask);
+        epictask.subtasks.remove(subtask);
 
-            return subtask;
-        }
-
-        return null;
+        return subtask;
     }
 
     public ArrayList<Subtask> getSubtasks(int taskId) {
-        if (epictasks.containsKey(taskId)) {
-            return new ArrayList<>(epictasks.get(taskId).subtasks);
-        }
-
-        return null;
+        return new ArrayList<>(epictasks.get(taskId).subtasks);
     }
 }
 
