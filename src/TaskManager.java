@@ -55,7 +55,8 @@ public class TaskManager {
 
     //fixed: разбить общий метод создания задач на 3 отдельных
     //вопрос - а если пользователь будет вызывать, например, createNewTask, а передавать туда эпик или подзадачу, или наоборт? Как этого избежать?
-    //Или такой проблемы в принципе здесь не должно возникнуть?
+    //Или такой проблемы здесь не должно возникнуть в принципе?
+    //доп.вопрос - это ок, что id начинаются с 1, или лучше с 0 начинать?)
     public Task createNewTask(Task task) {
         task.setId(++taskId);
         tasks.put(taskId, task);
@@ -71,49 +72,71 @@ public class TaskManager {
     public Task createNewSubtask(Subtask task) {
         task.setId(++taskId);
         subtasks.put(taskId, task);
+        checkStatus(task.getEpicTask());
         return task;
     }
 
-    public Task updateTask(int taskId, Task task) {
-        if (tasks.containsKey(taskId)) {
-            task.setId(taskId);
-            tasks.put(taskId, task);
-        }
-
-        if (epictasks.containsKey(taskId)) {
-            task.setId(taskId);
-            epictasks.put(taskId, (Epictask) task);
-        }
-
-        if (subtasks.containsKey(taskId)) {
-            task.setId(taskId);
-            subtasks.put(taskId, (Subtask) task);
-
-            Subtask subtask = (Subtask) task;
-            Epictask epictask = subtask.getEpicTask();
-            int subtasksAmount = getSubtasks(epictask).size();
-            int count = 0;
-            for (Subtask t : getSubtasks(epictask)) {
-                if (t.getStatus().equals(Status.NEW)) {
-                    count++;
-                }
-            }
-
-            if (count > 0 && count < subtasksAmount) {
-                epictask.setStatus(Status.IN_PROGRESS);
-            } else if (count == 0 && subtasksAmount != 0) {
-                epictask.setStatus(Status.DONE);
-            }
+    //fixed: разбить метод обновления задачи на 3 метода
+    public Task updateTask(Task task) {
+        if (tasks.containsKey(task.getId())) {
+            tasks.put(task.getId(), task);
         }
 
         return task;
     }
 
+    public Task updateEpictask(Epictask task) {
+        if (epictasks.containsKey(task.getId())) {
+            epictasks.put(task.getId(), task);
+        }
+
+        return task;
+    }
+
+    public Task updateSubtask(Subtask task) {
+        if (subtasks.containsKey(task.getId())) {
+            subtasks.put(task.getId(), task);
+            checkStatus(task.getEpicTask());
+        }
+
+        return task;
+    }
+
+    private void checkStatus(Epictask task) {
+        int subtasksAmount = getSubtasks(task.getId()).size();
+        int countProgress = 0;
+        int countDone = 0;
+        for (Subtask t : getSubtasks(task.getId())) {
+            if (t.getStatus().equals(Status.IN_PROGRESS)) {
+                countProgress++;
+            } else if (t.getStatus().equals(Status.DONE)) {
+                countDone++;
+            }
+        }
+
+        if (countProgress == 0 && countDone == 0) {
+            task.setStatus(Status.NEW);
+            return;
+        }
+
+        if (countDone == subtasksAmount) {
+            task.setStatus(Status.DONE);
+            return;
+        }
+
+        task.setStatus(Status.IN_PROGRESS);
+    }
+
+    //fixed: разбить общий метод удаления на 3 отдельных
     public Task deleteTaskById(int taskId) {
         if (tasks.containsKey(taskId)) {
             return tasks.remove(taskId);
         }
 
+        return null;
+    }
+
+    public Task deleteEpictaskById(int taskId) {
         if (epictasks.containsKey(taskId)) {
             Epictask epictask = epictasks.remove(taskId);
 
@@ -124,9 +147,14 @@ public class TaskManager {
             return epictask;
         }
 
+        return null;
+    }
+
+    public Task deleteSubtaskById(int taskId) {
         if (subtasks.containsKey(taskId)) {
             Subtask subtask = subtasks.remove(taskId);
-            getSubtasks(subtask.getEpicTask()).remove(subtask);
+            checkStatus(subtask.getEpicTask());
+            getSubtasks(subtask.getEpicTask().getId()).remove(subtask);
 
             return subtask;
         }
@@ -134,9 +162,9 @@ public class TaskManager {
         return null;
     }
 
-    public ArrayList<Subtask> getSubtasks(Epictask epicTask) {
-        if (epictasks.containsKey(epicTask.getId())) {
-            return epictasks.get(epicTask.getId()).subtasks;
+    public ArrayList<Subtask> getSubtasks(int taskId) {
+        if (epictasks.containsKey(taskId)) {
+            return new ArrayList<>(epictasks.get(taskId).subtasks);
         }
 
         return null;
