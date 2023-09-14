@@ -91,7 +91,9 @@ public class Main {
 		System.out.println();
 
 		System.out.println("Удаляем все задачи:");
-		taskManager.clearAllTasks();
+		taskManager.clearTasks();
+		taskManager.clearEpictasks();
+		taskManager.clearSubtasks();
 		System.out.println(taskManager.getTasksList());
 		System.out.println(taskManager.getEpictasksList());
 		System.out.println(taskManager.getSubtasksList());

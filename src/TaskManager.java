@@ -20,9 +20,18 @@ public class TaskManager {
         return new ArrayList<>(subtasks.values());
     }
 
-    public boolean clearAllTasks() {
+    //fixed: разбить общий метод удаления задач на 3 отдельных
+    public boolean clearTasks() {
         tasks.clear();
+        return true;
+    }
+
+    public boolean clearEpictasks() {
         epictasks.clear();
+        return true;
+    }
+
+    public boolean clearSubtasks() {
         subtasks.clear();
         return true;
     }
