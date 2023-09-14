@@ -4,7 +4,6 @@ public class Subtask extends Task {
 	public Subtask(String name, String description, Epictask epictask) {
 		super(name, description);
 		this.epictask = epictask;
-		//Добавление подзадачи в эпикзадачу происходит автоматически при создании подзадачи
 		epictask.add(this);
 	}
 

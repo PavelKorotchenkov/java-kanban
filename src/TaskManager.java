@@ -32,6 +32,11 @@ public class TaskManager {
     }
 
     public boolean clearSubtasks() {
+        for (Epictask epictask : epictasks.values()) {
+            epictask.subtasks.clear();
+            checkStatus(epictask);
+        }
+
         subtasks.clear();
         return true;
     }
@@ -56,7 +61,6 @@ public class TaskManager {
     //fixed: разбить общий метод создания задач на 3 отдельных
     //вопрос - а если пользователь будет вызывать, например, createNewTask, а передавать туда эпик или подзадачу, или наоборт? Как этого избежать?
     //Или такой проблемы здесь не должно возникнуть в принципе?
-    //доп.вопрос - это ок, что id начинаются с 1, или лучше с 0 начинать?)
     public Task createNewTask(Task task) {
         task.setId(++taskId);
         tasks.put(taskId, task);
@@ -102,6 +106,7 @@ public class TaskManager {
         return task;
     }
 
+    //feat: добавлен метод обновления статуса у эпика + refactor
     private void checkStatus(Epictask task) {
         int subtasksAmount = getSubtasks(task.getId()).size();
         int countProgress = 0;
@@ -127,7 +132,7 @@ public class TaskManager {
         task.setStatus(Status.IN_PROGRESS);
     }
 
-    //fixed: разбить общий метод удаления на 3 отдельных
+    //fixed: разбить общий метод удаления по ID на 3 отдельных
     public Task deleteTaskById(int taskId) {
         if (tasks.containsKey(taskId)) {
             return tasks.remove(taskId);
@@ -153,8 +158,9 @@ public class TaskManager {
     public Task deleteSubtaskById(int taskId) {
         if (subtasks.containsKey(taskId)) {
             Subtask subtask = subtasks.remove(taskId);
-            checkStatus(subtask.getEpicTask());
-            getSubtasks(subtask.getEpicTask().getId()).remove(subtask);
+            Epictask epictask = subtask.getEpicTask();
+            checkStatus(epictask);
+            epictask.subtasks.remove(subtask);
 
             return subtask;
         }

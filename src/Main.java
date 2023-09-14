@@ -1,12 +1,15 @@
 /**
  * author: Pavel Korotchenkov
  * created 13.09.2023
- * ver. 1.0
+ * updated 14.09.2023
+ * ver. 1.1
  */
 
-//Так и не понял, как правильно менять статус у задач)
-//Если через setStatus - то зачем метод updateTask
-//А если создавать новый объект - то как из него получить нужный ID, т.к. у нового объекта его ещё нет
+//Влад, спасибо!
+//Но я так и не понял, как правильно менять статус у задач)
+//Если через setStatus (у меня сейчас так) - то зачем метод updateTask, когда можно все через set установить,
+//А если создавать и передавать новый объект - то как из него получить нужный ID,
+//Ведь у нового объекта его ещё нет
 
 public class Main {
 	public static void main(String[] args) {
@@ -47,10 +50,10 @@ public class Main {
 		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
-		System.out.println("Добавляем новую подзадачу в первый эпик:");
-		Subtask subtask4 = new Subtask("Receive an offer", "Contact to employer", epictask1);
+		System.out.println("Добавляем новую подзадачу во второй эпик:");
+		Subtask subtask4 = new Subtask("Receive an offer", "Contact to employer", epictask2);
 		taskManager.createNewSubtask(subtask4);
-		taskManager.updateEpictask(epictask1);
+		taskManager.updateEpictask(epictask2);
 
 		System.out.println(taskManager.getTasksList());
 		System.out.println(taskManager.getEpictasksList());
@@ -72,20 +75,20 @@ public class Main {
 		System.out.println();
 
 		System.out.println("Удаляем подзадачу:");
-		taskManager.deleteTaskById(subtask4.getId());
+		taskManager.deleteSubtaskById(subtask4.getId());
 		System.out.println(taskManager.getTasksList());
 		System.out.println(taskManager.getEpictasksList());
 		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
 		System.out.println("Удаляем эпик:");
-		taskManager.deleteTaskById(epictask2.getId());
+		taskManager.deleteEpictaskById(epictask2.getId());
 		System.out.println(taskManager.getTasksList());
 		System.out.println(taskManager.getEpictasksList());
 		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
-		System.out.println("Удаляем все задачи:");
+		System.out.println("Удаляем под задачи:");
 		taskManager.clearTasks();
 		taskManager.clearEpictasks();
 		taskManager.clearSubtasks();
