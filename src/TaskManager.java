@@ -36,8 +36,7 @@ public class TaskManager {
         return true;
     }
 
-    //Я так понял, этот метод должен применяться внутри других методов, но честно говоря не очень понял, как правильно это здесь реализовать.
-    //Если делать свой отдельный метод под каждый тип задачи, то более-менее понятно.
+    //А если кто-то попытается в Main вызвать метод у класса-наследника, которого нет в классе-родителе?
     public Task getTaskById(int taskId) {
         if (tasks.containsKey(taskId)) {
             return tasks.get(taskId);
@@ -54,16 +53,24 @@ public class TaskManager {
         return null;
     }
 
+    //fixed: разбить общий метод создания задач на 3 отдельных
+    //вопрос - а если пользователь будет вызывать, например, createNewTask, а передавать туда эпик или подзадачу, или наоборт? Как этого избежать?
+    //Или такой проблемы в принципе здесь не должно возникнуть?
     public Task createNewTask(Task task) {
         task.setId(++taskId);
-        if (task instanceof Epictask) {
-            epictasks.put(taskId, (Epictask) task);
-        } else if (task instanceof Subtask) {
-            subtasks.put(taskId, (Subtask) task);
-        } else {
-            tasks.put(taskId, task);
-        }
+        tasks.put(taskId, task);
+        return task;
+    }
 
+    public Task createNewEpictask(Epictask task) {
+        task.setId(++taskId);
+        epictasks.put(taskId, task);
+        return task;
+    }
+
+    public Task createNewSubtask(Subtask task) {
+        task.setId(++taskId);
+        subtasks.put(taskId, task);
         return task;
     }
 

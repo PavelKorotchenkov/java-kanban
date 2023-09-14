@@ -31,11 +31,11 @@ public class Main {
 		System.out.println("Создаём и выводим на экран все задачи:");
 		taskManager.createNewTask(task1);
 		taskManager.createNewTask(task2);
-		taskManager.createNewTask(epictask1);
-		taskManager.createNewTask(subtask1);
-		taskManager.createNewTask(subtask2);
-		taskManager.createNewTask(epictask2);
-		taskManager.createNewTask(subtask3);
+		taskManager.createNewEpictask(epictask1);
+		taskManager.createNewSubtask(subtask1);
+		taskManager.createNewSubtask(subtask2);
+		taskManager.createNewEpictask(epictask2);
+		taskManager.createNewSubtask(subtask3);
 
 		System.out.println(taskManager.getTasksList());
 		System.out.println(taskManager.getEpictasksList());
