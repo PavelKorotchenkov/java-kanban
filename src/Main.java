@@ -38,6 +38,8 @@ public class Main {
 		taskManager.createNewTask(subtask3);
 
 		System.out.println(taskManager.getTasksList());
+		System.out.println(taskManager.getEpictasksList());
+		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
 		System.out.println("Меняем статус подзадач:");
@@ -48,6 +50,8 @@ public class Main {
 		taskManager.updateTask(subtask3.getId(), subtask3);
 
 		System.out.println(taskManager.getTasksList());
+		System.out.println(taskManager.getEpictasksList());
+		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
 		System.out.println("Добавляем новую подзадачу в первый эпик:");
@@ -56,6 +60,8 @@ public class Main {
 		taskManager.updateTask(epictask1.getId(), epictask1);
 
 		System.out.println(taskManager.getTasksList());
+		System.out.println(taskManager.getEpictasksList());
+		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
 		System.out.println("Меняем статус задач и подзадач:");
@@ -73,16 +79,22 @@ public class Main {
 		System.out.println("Удаляем подзадачу:");
 		taskManager.deleteTaskById(subtask4.getId());
 		System.out.println(taskManager.getTasksList());
+		System.out.println(taskManager.getEpictasksList());
+		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
 		System.out.println("Удаляем эпик:");
 		taskManager.deleteTaskById(epictask2.getId());
 		System.out.println(taskManager.getTasksList());
+		System.out.println(taskManager.getEpictasksList());
+		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
 		System.out.println("Удаляем все задачи:");
 		taskManager.clearAllTasks();
 		System.out.println(taskManager.getTasksList());
+		System.out.println(taskManager.getEpictasksList());
+		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 	}
 }

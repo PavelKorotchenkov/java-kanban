@@ -2,127 +2,129 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class TaskManager {
-	private int taskId = 0;
-	private final HashMap<Integer, Task> tasks = new HashMap<>();
-	private final HashMap<Integer, Epictask> epictasks = new HashMap<>();
-	private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    private int taskId = 0;
+    private final HashMap<Integer, Task> tasks = new HashMap<>();
+    private final HashMap<Integer, Epictask> epictasks = new HashMap<>();
+    private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
 
-	public ArrayList<Task> getTasksList() {
-		ArrayList<Task> result = new ArrayList<>();
-		result.addAll(tasks.values());
-		result.addAll(epictasks.values());
-		//Вывод подзадач сейчас происходит вместе с выводом эпик задачи
-		//На мой взгляд, это более правильно, т.к. видно, к какой конкретно эпик задаче относятся подзадачи
-		//Но по ТЗ вроде как нужно выводить список из этого метода, в таком случае подзадачи будут выводиться дважды
-		//result.addAll(subtasks.values());
-		return result;
-	}
+    //fixed: разбить общий метод вывода задач на 3 отдельных
+    public ArrayList<Task> getTasksList() {
+        return new ArrayList<>(tasks.values());
+    }
 
-	public boolean clearAllTasks() {
-		tasks.clear();
-		epictasks.clear();
-		subtasks.clear();
-		return true;
-	}
+    public ArrayList<Task> getEpictasksList() {
+        return new ArrayList<>(epictasks.values());
+    }
 
-	//Я так понял, этот метод должен применяться внутри других методов, но честно говоря не очень понял, как правильно это здесь реализовать.
-	//Если делать свой отдельный метод под каждый тип задачи, то более-менее понятно.
-	public Task getTaskById(int taskId) {
-		if (tasks.containsKey(taskId)) {
-			return tasks.get(taskId);
-		}
+    public ArrayList<Task> getSubtasksList() {
+        return new ArrayList<>(subtasks.values());
+    }
 
-		if (epictasks.containsKey(taskId)) {
-			return epictasks.get(taskId);
-		}
+    public boolean clearAllTasks() {
+        tasks.clear();
+        epictasks.clear();
+        subtasks.clear();
+        return true;
+    }
 
-		if (subtasks.containsKey(taskId)) {
-			return subtasks.get(taskId);
-		}
+    //Я так понял, этот метод должен применяться внутри других методов, но честно говоря не очень понял, как правильно это здесь реализовать.
+    //Если делать свой отдельный метод под каждый тип задачи, то более-менее понятно.
+    public Task getTaskById(int taskId) {
+        if (tasks.containsKey(taskId)) {
+            return tasks.get(taskId);
+        }
 
-		return null;
-	}
+        if (epictasks.containsKey(taskId)) {
+            return epictasks.get(taskId);
+        }
 
-	public Task createNewTask(Task task) {
-		task.setId(++taskId);
-		if (task instanceof Epictask) {
-			epictasks.put(taskId, (Epictask) task);
-		} else if (task instanceof Subtask) {
-			subtasks.put(taskId, (Subtask) task);
-		} else {
-			tasks.put(taskId, task);
-		}
+        if (subtasks.containsKey(taskId)) {
+            return subtasks.get(taskId);
+        }
 
-		return task;
-	}
+        return null;
+    }
 
-	public Task updateTask(int taskId, Task task) {
-		if (tasks.containsKey(taskId)) {
-			task.setId(taskId);
-			tasks.put(taskId, task);
-		}
+    public Task createNewTask(Task task) {
+        task.setId(++taskId);
+        if (task instanceof Epictask) {
+            epictasks.put(taskId, (Epictask) task);
+        } else if (task instanceof Subtask) {
+            subtasks.put(taskId, (Subtask) task);
+        } else {
+            tasks.put(taskId, task);
+        }
 
-		if (epictasks.containsKey(taskId)) {
-			task.setId(taskId);
-			epictasks.put(taskId, (Epictask) task);
-		}
+        return task;
+    }
 
-		if (subtasks.containsKey(taskId)) {
-			task.setId(taskId);
-			subtasks.put(taskId, (Subtask) task);
+    public Task updateTask(int taskId, Task task) {
+        if (tasks.containsKey(taskId)) {
+            task.setId(taskId);
+            tasks.put(taskId, task);
+        }
 
-			Subtask subtask = (Subtask) task;
-			Epictask epictask = subtask.getEpicTask();
-			int subtasksAmount = getSubtasks(epictask).size();
-			int count = 0;
-			for (Subtask t : getSubtasks(epictask)) {
-				if (t.getStatus().equals(Status.NEW)) {
-					count++;
-				}
-			}
+        if (epictasks.containsKey(taskId)) {
+            task.setId(taskId);
+            epictasks.put(taskId, (Epictask) task);
+        }
 
-			if (count > 0 && count < subtasksAmount) {
-				epictask.setStatus(Status.IN_PROGRESS);
-			} else if (count == 0 && subtasksAmount != 0) {
-				epictask.setStatus(Status.DONE);
-			}
-		}
+        if (subtasks.containsKey(taskId)) {
+            task.setId(taskId);
+            subtasks.put(taskId, (Subtask) task);
 
-		return task;
-	}
+            Subtask subtask = (Subtask) task;
+            Epictask epictask = subtask.getEpicTask();
+            int subtasksAmount = getSubtasks(epictask).size();
+            int count = 0;
+            for (Subtask t : getSubtasks(epictask)) {
+                if (t.getStatus().equals(Status.NEW)) {
+                    count++;
+                }
+            }
 
-	public Task deleteTaskById(int taskId) {
-		if (tasks.containsKey(taskId)) {
-			return tasks.remove(taskId);
-		}
+            if (count > 0 && count < subtasksAmount) {
+                epictask.setStatus(Status.IN_PROGRESS);
+            } else if (count == 0 && subtasksAmount != 0) {
+                epictask.setStatus(Status.DONE);
+            }
+        }
 
-		if (epictasks.containsKey(taskId)) {
-			Epictask epictask = epictasks.remove(taskId);
+        return task;
+    }
 
-			for (Subtask subtask : epictask.subtasks) {
-				subtasks.remove(subtask.getId());
-			}
+    public Task deleteTaskById(int taskId) {
+        if (tasks.containsKey(taskId)) {
+            return tasks.remove(taskId);
+        }
 
-			return epictask;
-		}
+        if (epictasks.containsKey(taskId)) {
+            Epictask epictask = epictasks.remove(taskId);
 
-		if (subtasks.containsKey(taskId)) {
-			Subtask subtask = subtasks.remove(taskId);
-			getSubtasks(subtask.getEpicTask()).remove(subtask);
+            for (Subtask subtask : epictask.subtasks) {
+                subtasks.remove(subtask.getId());
+            }
 
-			return subtask;
-		}
+            return epictask;
+        }
 
-		return null;
-	}
+        if (subtasks.containsKey(taskId)) {
+            Subtask subtask = subtasks.remove(taskId);
+            getSubtasks(subtask.getEpicTask()).remove(subtask);
 
-	public ArrayList<Subtask> getSubtasks(Epictask epicTask) {
-		if (epictasks.containsKey(epicTask.getId())) {
-			return epictasks.get(epicTask.getId()).subtasks;
-		}
+            return subtask;
+        }
 
-		return null;
-	}
+        return null;
+    }
+
+    public ArrayList<Subtask> getSubtasks(Epictask epicTask) {
+        if (epictasks.containsKey(epicTask.getId())) {
+            return epictasks.get(epicTask.getId()).subtasks;
+        }
+
+        return null;
+    }
 }
 
 
