@@ -7,9 +7,10 @@
 
 //Влад, спасибо!
 //Но я так и не понял, как правильно менять статус у задач)
-//Если через setStatus (у меня сейчас так) - то зачем метод updateTask, когда можно все через set установить,
+//Если через setStatus (у меня сейчас так) - то зачем нужен метод updateTask, ведь можно все через set установить
+//(кроме подзадач, т.к. нужно проверить и обновить статус эпика),
 //А если создавать и передавать новый объект - то как из него получить нужный ID,
-//Ведь у нового объекта его ещё нет
+//Ведь у нового объекта ID ещё нет.
 
 public class Main {
 	public static void main(String[] args) {
@@ -39,9 +40,13 @@ public class Main {
 		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
-		System.out.println("Меняем статус подзадач:");
+		System.out.println("Меняем статусы :");
+		task1.setStatus(Status.DONE);
+		task2.setStatus(Status.IN_PROGRESS);
 		subtask1.setStatus(Status.IN_PROGRESS);
 		subtask3.setStatus(Status.DONE);
+		taskManager.updateTask(task1);
+		taskManager.updateTask(task2);
 		taskManager.updateSubtask(subtask1);
 		taskManager.updateSubtask(subtask3);
 
@@ -50,23 +55,25 @@ public class Main {
 		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
-		System.out.println("Добавляем новую подзадачу во второй эпик:");
+		System.out.println("Добавляем новую подзадачу во второй эпик, удаляем обычные задачи:");
 		Subtask subtask4 = new Subtask("Receive an offer", "Contact to employer", epictask2);
 		taskManager.createNewSubtask(subtask4);
 		taskManager.updateEpictask(epictask2);
+		taskManager.deleteTaskById(task1.getId());
+		taskManager.deleteTaskById(task2.getId());
 
 		System.out.println(taskManager.getTasksList());
 		System.out.println(taskManager.getEpictasksList());
 		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
-		System.out.println("Меняем статус задач и подзадач:");
-		task1.setStatus(Status.DONE);
-		task2.setStatus(Status.DONE);
+		System.out.println("Меняем статусы:");
+		subtask1.setStatus(Status.DONE);
+		subtask2.setStatus(Status.DONE);
+		subtask2.setDescription("Задача завершена!");
 		subtask4.setStatus(Status.DONE);
-		subtask4.setDescription("ЧТО-ТО СДЕЛАНО!");
-		taskManager.updateTask(task1);
-		taskManager.updateTask(task2);
+		taskManager.updateSubtask(subtask1);
+		taskManager.updateSubtask(subtask2);
 		taskManager.updateSubtask(subtask4);
 
 		System.out.println(taskManager.getTasksList());
@@ -88,9 +95,7 @@ public class Main {
 		System.out.println(taskManager.getSubtasksList());
 		System.out.println();
 
-		System.out.println("Удаляем под задачи:");
-		taskManager.clearTasks();
-		taskManager.clearEpictasks();
+		System.out.println("Удаляем подзадачи:");
 		taskManager.clearSubtasks();
 		System.out.println(taskManager.getTasksList());
 		System.out.println(taskManager.getEpictasksList());

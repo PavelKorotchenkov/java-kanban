@@ -19,15 +19,18 @@ TaskManager taskManager = new TaskManager();
 		Epictask epictask2 = new Epictask("Epic 2", "Buy a house");
 		Subtask subtask3 = new Subtask("Money", "Get enough money", epictask2);
 
-		System.out.println("Создаём и выводим на экран все задачи:");
-		taskManager.createNewTask(epictask1);
-		taskManager.createNewTask(subtask1);
-		taskManager.createNewTask(subtask2);
-		taskManager.createNewTask(epictask2);
-		taskManager.createNewTask(subtask3);
+        System.out.println("Создаём и выводим на экран все задачи:");
+        taskManager.createNewTask(task1);
+        taskManager.createNewTask(task2);
+        taskManager.createNewEpictask(epictask1);
+        taskManager.createNewSubtask(subtask1);
+        taskManager.createNewSubtask(subtask2);
+        taskManager.createNewEpictask(epictask2);
+        taskManager.createNewSubtask(subtask3);
 
-		System.out.println(taskManager.getTasksList());
-		System.out.println();
+        System.out.println(taskManager.getTasksList());
+        System.out.println(taskManager.getEpictasksList());
+        System.out.println(taskManager.getSubtasksList());
 ```
 
 ©[Yandex-Practicum](https://practicum.yandex.ru/ "Онлайн курс по Java")

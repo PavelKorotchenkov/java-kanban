@@ -34,6 +34,7 @@ public class TaskManager {
     public boolean clearSubtasks() {
         for (Epictask epictask : epictasks.values()) {
             epictask.subtasks.clear();
+            //проверка и обновленение статуса эпика
             checkStatus(epictask);
         }
 
@@ -58,8 +59,8 @@ public class TaskManager {
     }
 
     //fixed: разбить общий метод создания задач на 3 отдельных
-    //вопрос - а если пользователь будет вызывать, например, createNewTask, а передавать туда эпик или подзадачу, или наоборт? Как этого избежать?
-    //Или такой проблемы здесь не должно возникнуть в принципе?
+    //Вопрос - а если пользователь будет вызывать, например, createNewTask, а передавать туда эпик или подзадачу?
+    //Идея пропускает, но логика добавения нарушается.
     public Task createNewTask(Task task) {
         task.setId(++taskId);
         tasks.put(taskId, task);
@@ -79,7 +80,8 @@ public class TaskManager {
         return task;
     }
 
-    //fixed: разбить метод обновления задачи на 3 метода
+    //fixed: разбить метод обновления задачи на 3 метода.
+    //refactor: поменять возвращаемый тип на boolean
     public boolean updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
             tasks.put(task.getId(), task);
@@ -108,7 +110,7 @@ public class TaskManager {
         return false;
     }
 
-    //feat: добавлен метод обновления статуса у эпика + refactor
+    //feat: добавлен метод обновления статуса у эпика + fix
     private void checkStatus(Epictask task) {
         int subtasksAmount = getSubtasks(task.getId()).size();
         int countNew = 0;
