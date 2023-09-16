@@ -33,7 +33,7 @@ public class TaskManager {
 
     public boolean clearSubtasks() {
         for (Epictask epictask : epictasks.values()) {
-            epictask.subtasks.clear();
+            epictask.getSubtasks().clear();
             //проверка и обновленение статуса эпика
             checkStatus(epictask);
         }
@@ -144,7 +144,7 @@ public class TaskManager {
     public Epictask deleteEpictaskById(int taskId) {
         Epictask epictask = epictasks.remove(taskId);
 
-        for (Subtask subtask : epictask.subtasks) {
+        for (Subtask subtask : epictask.getSubtasks()) {
             subtasks.remove(subtask.getId());
         }
 
@@ -155,13 +155,13 @@ public class TaskManager {
         Subtask subtask = subtasks.remove(taskId);
         Epictask epictask = subtask.getEpicTask();
         checkStatus(epictask);
-        epictask.subtasks.remove(subtask);
+        epictask.getSubtasks().remove(subtask);
 
         return subtask;
     }
 
     public ArrayList<Subtask> getSubtasks(int taskId) {
-        return new ArrayList<>(epictasks.get(taskId).subtasks);
+        return new ArrayList<>(epictasks.get(taskId).getSubtasks());
     }
 }
 

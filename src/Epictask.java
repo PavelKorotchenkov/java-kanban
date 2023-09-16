@@ -1,15 +1,20 @@
 import java.util.ArrayList;
 
 public class Epictask extends Task {
-    protected ArrayList<Subtask> subtasks = new ArrayList<>();
+
+    private ArrayList<Subtask> subtasks = new ArrayList<>();
 
     public Epictask(String name, String description) {
         super(name, description);
     }
 
-    //метод для добавления подзадачи в список подзадач, хранимых в эпикзадаче (применяется в конструкторе класса Subtask)
     protected void add(Subtask subtask) {
         subtasks.add(subtask);
+    }
+
+    //refactor: поменять видимость поля на private, доступ осуществляется через геттер
+    public ArrayList<Subtask> getSubtasks() {
+        return subtasks;
     }
 
     private ArrayList<Integer> printSubtasksId() {
