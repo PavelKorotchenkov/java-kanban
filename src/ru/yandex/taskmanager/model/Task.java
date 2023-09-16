@@ -1,9 +1,9 @@
 package ru.yandex.taskmanager.model;
 
 public class Task {
+	private int id;
 	private String name;
 	private String description;
-	private int id;
 	private Status status;
 
 	public Task(String name, String description) {
@@ -46,7 +46,7 @@ public class Task {
 
 	@Override
 	public String toString() {
-		return "ru.yandex.taskmanager.model.Task{" +
+		return "Task{" +
 				"name='" + name + '\'' +
 				", description='" + description + '\'' +
 				", status=" + status +

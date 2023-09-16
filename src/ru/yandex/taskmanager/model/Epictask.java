@@ -3,35 +3,33 @@ package ru.yandex.taskmanager.model;
 import java.util.ArrayList;
 
 public class Epictask extends Task {
+	//аналогично подзадаче решил здесь также хранить только айдишники, правда удаление подзадачи стало выглядеть
+	//кривовато из-за необходимости приведения ID к Integer, чтобы удалялся именно индекс подзадачи, а не индекс списка
+	private ArrayList<Integer> subtasksIds = new ArrayList<>();
 
-    private ArrayList<Subtask> subtasks = new ArrayList<>();
+	public ArrayList<Integer> getSubtasksIds() {
+		return subtasksIds;
+	}
 
-    public Epictask(String name, String description) {
-        super(name, description);
-    }
+	public Epictask(String name, String description) {
+		super(name, description);
+	}
 
-    public void add(Subtask subtask) {
-        subtasks.add(subtask);
-    }
+	//refactor: поменять видимость поля на public
+	public void add(int subtaskId) {
+		subtasksIds.add(subtaskId);
+	}
 
-    //refactor: поменять видимость поля на private, доступ осуществляется через геттер
-    public ArrayList<Subtask> getSubtasks() {
-        return subtasks;
-    }
+	//refactor: поменять видимость поля с подзадачами на private, доступ осуществляется через геттер
+	public ArrayList<Integer> getSubtasks() {
+		return subtasksIds;
+	}
 
-    private ArrayList<Integer> printSubtasksId() {
-        ArrayList<Integer> ids = new ArrayList<>();
-        for (Subtask subtask : subtasks) {
-            ids.add(subtask.getId());
-        }
-        return ids;
-    }
-
-    @Override
-    public String toString() {
-        return "EpicTask: " + getName() + "=\""
-                + getDescription() + "\", status=" + getStatus() + ", id=" + getId()
-                + ", subtasks=" + printSubtasksId() +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "EpicTask: " + getName() + "=\""
+				+ getDescription() + "\", status=" + getStatus() + ", id=" + getId()
+				+ ", subtasks=" + getSubtasks() +
+				'}';
+	}
 }

@@ -1,21 +1,21 @@
 package ru.yandex.taskmanager.model;
 
 public class Subtask extends Task {
-	private Epictask epictask;
+	//refactor: хранить айди эпика, а не эпик. Всё-таки так проще и надёжнее - меньше возможностей допустить ошибку
+	private final int epicId;
 
-	public Subtask(String name, String description, Epictask epictask) {
+	public Subtask(String name, String description, int epicId) {
 		super(name, description);
-		this.epictask = epictask;
-		epictask.add(this);
+		this.epicId = epicId;
 	}
 
-	public Epictask getEpicTask() {
-		return epictask;
+	public int getEpicTaskId() {
+		return this.epicId;
 	}
 
 	@Override
 	public String toString() {
-		return "ru.yandex.taskmanager.model.Subtask{'" + getName() + "'='"
+		return "Subtask{'" + getName() + "'='"
 				+ getDescription() + "', status=" + getStatus() + ", id=" + getId()
 				+ '}';
 	}

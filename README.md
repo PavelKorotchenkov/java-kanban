@@ -10,27 +10,28 @@ JAVA-KANBAN
 Эпик задача содержит в себе подзадачи. Статус эпик задачи зависит от статусов её подзадач.   
 В классе ru.yandex.taskmanager.Main дан пример работы с программой:
 ```java
-ru.yandex.taskmanager.service.TaskManager taskManager = new ru.yandex.taskmanager.service.TaskManager();
-
-		ru.yandex.taskmanager.model.Epictask epictask1 = new ru.yandex.taskmanager.model.Epictask("Epic 1", "Get a new Job");
-		ru.yandex.taskmanager.model.Subtask subtask1 = new ru.yandex.taskmanager.model.Subtask("Learn Java", "Finish Yandex Practicum", epictask1);
-		ru.yandex.taskmanager.model.Subtask subtask2 = new ru.yandex.taskmanager.model.Subtask("Pass Interview", "Prepare for interviews", epictask1);
-
-		ru.yandex.taskmanager.model.Epictask epictask2 = new ru.yandex.taskmanager.model.Epictask("Epic 2", "Buy a house");
-		ru.yandex.taskmanager.model.Subtask subtask3 = new ru.yandex.taskmanager.model.Subtask("Money", "Get enough money", epictask2);
-
-        System.out.println("Создаём и выводим на экран все задачи:");
+        TaskManager taskManager = new TaskManager();
+        Task task1 = new Task("Покормить кошку утром","30 гр. корма");
         taskManager.createNewTask(task1);
+        Task task2 = new Task("Покормить кошку вечером","40 гр. корма");
         taskManager.createNewTask(task2);
+
+        Epictask epictask1 = new Epictask("Epic 1", "Get a new Job");
         taskManager.createNewEpictask(epictask1);
+        Subtask subtask1 = new Subtask("Learn Java", "Finish Yandex Practicum", epictask1.getId());
         taskManager.createNewSubtask(subtask1);
+        Subtask subtask2 = new Subtask("Pass Interview", "Prepare for interviews", epictask1.getId());
         taskManager.createNewSubtask(subtask2);
+
+        Epictask epictask2 = new Epictask("Epic 2", "Buy a house");
         taskManager.createNewEpictask(epictask2);
+        Subtask subtask3 = new Subtask("Money", "Get enough money", epictask2.getId());
         taskManager.createNewSubtask(subtask3);
 
         System.out.println(taskManager.getTasksList());
         System.out.println(taskManager.getEpictasksList());
         System.out.println(taskManager.getSubtasksList());
+        System.out.println();
 ```
 
 ©[Yandex-Practicum](https://practicum.yandex.ru/ "Онлайн курс по Java")
