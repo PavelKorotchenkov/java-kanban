@@ -28,7 +28,9 @@ public class TaskManager {
 		return true;
 	}
 
+	//fix: одновременно очищаем список подзадач
 	public boolean clearEpictasks() {
+		subtasks.clear();
 		epictasks.clear();
 		return true;
 	}
