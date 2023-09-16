@@ -21,6 +21,17 @@ public class Main {
 		TaskManager taskManager = new TaskManager();
 
 		Task task1 = new Task("Покормить кошку утром","30 гр. корма");
+		taskManager.createNewTask(task1);
+		System.out.println(taskManager.getTasksList());
+		System.out.println();
+
+		Task task2 = taskManager.getTaskById(task1.getId());
+		task2.setName("Погулять");
+		task2.setDescription("Не менее 30 минут");
+		taskManager.updateTask(task2);
+		System.out.println(taskManager.getTasksList());
+		System.out.println();
+		/*Task task1 = new Task("Покормить кошку утром","30 гр. корма");
 		Task task2 = new Task("Покормить кошку вечером","40 гр. корма");
 
 		Epictask epictask1 = new Epictask("Epic 1", "Get a new Job");
@@ -104,6 +115,6 @@ public class Main {
 		System.out.println(taskManager.getTasksList());
 		System.out.println(taskManager.getEpictasksList());
 		System.out.println(taskManager.getSubtasksList());
-		System.out.println();
+		System.out.println();*/
 	}
 }

@@ -6,167 +6,186 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class TaskManager {
-    private int taskId = 0;
-    private final HashMap<Integer, Task> tasks = new HashMap<>();
-    private final HashMap<Integer, Epictask> epictasks = new HashMap<>();
-    private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+	private int taskId = 0;
+	private final HashMap<Integer, Task> tasks = new HashMap<>();
+	private final HashMap<Integer, Epictask> epictasks = new HashMap<>();
+	private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
 
-    //fixed: разбить общий метод вывода задач на 3 отдельных
-    public ArrayList<Task> getTasksList() {
-        return new ArrayList<>(tasks.values());
-    }
+	public ArrayList<Task> getTasksList() {
+		return new ArrayList<>(tasks.values());
+	}
 
-    public ArrayList<Epictask> getEpictasksList() {
-        return new ArrayList<>(epictasks.values());
-    }
+	public ArrayList<Epictask> getEpictasksList() {
+		return new ArrayList<>(epictasks.values());
+	}
 
-    public ArrayList<Subtask> getSubtasksList() {
-        return new ArrayList<>(subtasks.values());
-    }
+	public ArrayList<Subtask> getSubtasksList() {
+		return new ArrayList<>(subtasks.values());
+	}
 
-    //fixed: разбить общий метод удаления задач на 3 отдельных
-    public boolean clearTasks() {
-        tasks.clear();
-        return true;
-    }
+	public boolean clearTasks() {
+		tasks.clear();
+		return true;
+	}
 
-    public boolean clearEpictasks() {
-        epictasks.clear();
-        return true;
-    }
+	public boolean clearEpictasks() {
+		epictasks.clear();
+		return true;
+	}
 
-    public boolean clearSubtasks() {
-        for (Epictask epictask : epictasks.values()) {
-            epictask.getSubtasks().clear();
-            //проверка и обновленение статуса эпика
-            checkStatus(epictask);
-        }
+	public boolean clearSubtasks() {
+		for (Epictask epictask : epictasks.values()) {
+			epictask.getSubtasks().clear();
+			checkStatus(epictask);
+		}
 
-        subtasks.clear();
-        return true;
-    }
+		subtasks.clear();
+		return true;
+	}
 
-    public Task getTaskById(int taskId) {
-        if (tasks.containsKey(taskId)) {
-            return tasks.get(taskId);
-        }
+	//Сделал рефактор метода, теперь он возвращает новую задачу, а не ссылку на существующую задачу,
+	//не знаю, насколько это правильно, но как ещё получить именно НОВЫЙ объект с правильными данными
+	//и затем передать его в updateTask, я не придумал
+	public Task getTaskById(int taskId) {
+		if (tasks.containsKey(taskId)) {
+			Task task = new Task(tasks.get(taskId).getName(), tasks.get(taskId).getDescription());
+			task.setId(taskId);
+			return task;
+		}
+		if (epictasks.containsKey(taskId)) {
+			Epictask epictask = new Epictask(epictasks.get(taskId).getName(), epictasks.get(taskId).getDescription());
+			epictask.setId(taskId);
+			return epictask;
+		}
 
-        if (epictasks.containsKey(taskId)) {
-            return epictasks.get(taskId);
-        }
+		if (subtasks.containsKey(taskId)) {
+			Subtask subtask = new Subtask(subtasks.get(taskId).getName(), subtasks.get(taskId).getDescription(), subtasks.get(taskId).getEpicTask());
+			subtask.setId(taskId);
+			return subtask;
+		}
 
-        if (subtasks.containsKey(taskId)) {
-            return subtasks.get(taskId);
-        }
+		return null;
+	}
+	/*public Task getTaskById(int taskId) {
+		if (tasks.containsKey(taskId)) {
+			return tasks.get(taskId);
+		}
 
-        return null;
-    }
+		if (epictasks.containsKey(taskId)) {
+			return epictasks.get(taskId);
+		}
 
-    //fixed: разбить общий метод создания задач на 3 отдельных
-    //Вопрос - а если пользователь будет вызывать, например, createNewTask, а передавать туда эпик или подзадачу?
-    //Идея пропускает, но логика добавения нарушается.
-    public Task createNewTask(Task task) {
-        task.setId(++taskId);
-        tasks.put(taskId, task);
-        return task;
-    }
+		if (subtasks.containsKey(taskId)) {
+			return subtasks.get(taskId);
+		}
 
-    public Epictask createNewEpictask(Epictask task) {
-        task.setId(++taskId);
-        epictasks.put(taskId, task);
-        return task;
-    }
+		return null;
+	}*/
 
-    public Subtask createNewSubtask(Subtask task) {
-        task.setId(++taskId);
-        subtasks.put(taskId, task);
-        checkStatus(task.getEpicTask());
-        return task;
-    }
+	//fixed: разбить общий метод создания задач на 3 отдельных
+	//Вопрос - а если пользователь будет вызывать, например, createNewTask, а передавать туда эпик или подзадачу?
+	//Идея пропускает, но логика добавения нарушается.
+	public Task createNewTask(Task task) {
+		task.setId(++taskId);
+		tasks.put(taskId, task);
+		return task;
+	}
 
-    //fixed: разбить метод обновления задачи на 3 метода.
-    //refactor: поменять возвращаемый тип на boolean
-    public boolean updateTask(Task task) {
-        if (tasks.containsKey(task.getId())) {
-            tasks.put(task.getId(), task);
-            return true;
-        }
+	public Epictask createNewEpictask(Epictask task) {
+		task.setId(++taskId);
+		epictasks.put(taskId, task);
+		return task;
+	}
 
-        return false;
-    }
+	public Subtask createNewSubtask(Subtask task) {
+		task.setId(++taskId);
+		subtasks.put(taskId, task);
+		checkStatus(task.getEpicTask());
+		return task;
+	}
 
-    public boolean updateEpictask(Epictask task) {
-        if (epictasks.containsKey(task.getId())) {
-            epictasks.put(task.getId(), task);
-            return true;
-        }
 
-        return false;
-    }
+	public boolean updateTask(Task task) {
+		if (tasks.containsKey(task.getId())) {
+			tasks.put(task.getId(), task);
+			return true;
+		}
 
-    public boolean updateSubtask(Subtask task) {
-        if (subtasks.containsKey(task.getId())) {
-            subtasks.put(task.getId(), task);
-            checkStatus(task.getEpicTask());
-            return true;
-        }
+		return false;
+	}
 
-        return false;
-    }
+	public boolean updateEpictask(Epictask task) {
+		if (epictasks.containsKey(task.getId())) {
+			epictasks.put(task.getId(), task);
+			return true;
+		}
 
-    //feat: добавлен метод обновления статуса у эпика + fix
-    private void checkStatus(Epictask task) {
-        int subtasksAmount = getSubtasks(task.getId()).size();
-        int countNew = 0;
-        int countDone = 0;
-        for (Subtask t : getSubtasks(task.getId())) {
-            if (t.getStatus().equals(Status.NEW)) {
-                countNew++;
-            } else if (t.getStatus().equals(Status.DONE)) {
-                countDone++;
-            }
-        }
+		return false;
+	}
 
-        if (countNew == subtasksAmount) {
-            task.setStatus(Status.NEW);
-            return;
-        }
+	public boolean updateSubtask(Subtask task) {
+		if (subtasks.containsKey(task.getId())) {
+			subtasks.put(task.getId(), task);
+			checkStatus(task.getEpicTask());
+			return true;
+		}
 
-        if (countDone == subtasksAmount) {
-            task.setStatus(Status.DONE);
-            return;
-        }
+		return false;
+	}
 
-        task.setStatus(Status.IN_PROGRESS);
-    }
+	//feat: добавлен метод обновления статуса у эпика + fix
+	private void checkStatus(Epictask task) {
+		int subtasksAmount = getSubtasks(task.getId()).size();
+		int countNew = 0;
+		int countDone = 0;
+		for (Subtask t : getSubtasks(task.getId())) {
+			if (t.getStatus().equals(Status.NEW)) {
+				countNew++;
+			} else if (t.getStatus().equals(Status.DONE)) {
+				countDone++;
+			}
+		}
 
-    //fixed: разбить общий метод удаления по ID на 3 отдельных
-    public Task deleteTaskById(int taskId) {
-        return tasks.remove(taskId);
-    }
+		if (countNew == subtasksAmount) {
+			task.setStatus(Status.NEW);
+			return;
+		}
 
-    public Epictask deleteEpictaskById(int taskId) {
-        Epictask epictask = epictasks.remove(taskId);
+		if (countDone == subtasksAmount) {
+			task.setStatus(Status.DONE);
+			return;
+		}
 
-        for (Subtask subtask : epictask.getSubtasks()) {
-            subtasks.remove(subtask.getId());
-        }
+		task.setStatus(Status.IN_PROGRESS);
+	}
 
-        return epictask;
-    }
+	//fixed: разбить общий метод удаления по ID на 3 отдельных
+	public Task deleteTaskById(int taskId) {
+		return tasks.remove(taskId);
+	}
 
-    public Subtask deleteSubtaskById(int taskId) {
-        Subtask subtask = subtasks.remove(taskId);
-        Epictask epictask = subtask.getEpicTask();
-        checkStatus(epictask);
-        epictask.getSubtasks().remove(subtask);
+	public Epictask deleteEpictaskById(int taskId) {
+		Epictask epictask = epictasks.remove(taskId);
 
-        return subtask;
-    }
+		for (Subtask subtask : epictask.getSubtasks()) {
+			subtasks.remove(subtask.getId());
+		}
 
-    public ArrayList<Subtask> getSubtasks(int taskId) {
-        return new ArrayList<>(epictasks.get(taskId).getSubtasks());
-    }
+		return epictask;
+	}
+
+	public Subtask deleteSubtaskById(int taskId) {
+		Subtask subtask = subtasks.remove(taskId);
+		Epictask epictask = subtask.getEpicTask();
+		checkStatus(epictask);
+		epictask.getSubtasks().remove(subtask);
+
+		return subtask;
+	}
+
+	public ArrayList<Subtask> getSubtasks(int taskId) {
+		return new ArrayList<>(epictasks.get(taskId).getSubtasks());
+	}
 }
 
 
