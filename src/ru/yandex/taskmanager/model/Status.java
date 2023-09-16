@@ -1,3 +1,5 @@
+package ru.yandex.taskmanager.model;
+
 public enum Status {
 	NEW("Новая задача"),
 	IN_PROGRESS("Задача в работе"),

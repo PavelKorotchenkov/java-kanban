@@ -1,3 +1,7 @@
+package ru.yandex.taskmanager;
+import ru.yandex.taskmanager.model.*;
+import ru.yandex.taskmanager.service.TaskManager;
+
 /**
  * author: Pavel Korotchenkov
  * created 13.09.2023

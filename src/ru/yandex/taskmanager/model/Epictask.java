@@ -1,3 +1,5 @@
+package ru.yandex.taskmanager.model;
+
 import java.util.ArrayList;
 
 public class Epictask extends Task {
@@ -8,7 +10,7 @@ public class Epictask extends Task {
         super(name, description);
     }
 
-    protected void add(Subtask subtask) {
+    public void add(Subtask subtask) {
         subtasks.add(subtask);
     }
 

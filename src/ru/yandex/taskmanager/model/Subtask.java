@@ -1,3 +1,5 @@
+package ru.yandex.taskmanager.model;
+
 public class Subtask extends Task {
 	private Epictask epictask;
 
@@ -13,7 +15,7 @@ public class Subtask extends Task {
 
 	@Override
 	public String toString() {
-		return "Subtask{'" + getName() + "'='"
+		return "ru.yandex.taskmanager.model.Subtask{'" + getName() + "'='"
 				+ getDescription() + "', status=" + getStatus() + ", id=" + getId()
 				+ '}';
 	}
