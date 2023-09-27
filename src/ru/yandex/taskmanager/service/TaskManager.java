@@ -31,6 +31,4 @@ public interface TaskManager {
 	Subtask deleteSubtaskById(int taskId);
 
 	ArrayList<Integer> getSubtasks(int taskId);
-
-	List<Task> getHistory();
 }

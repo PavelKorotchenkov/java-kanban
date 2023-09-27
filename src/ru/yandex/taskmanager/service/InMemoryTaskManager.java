@@ -1,6 +1,7 @@
 package ru.yandex.taskmanager.service;
 
 import ru.yandex.taskmanager.model.*;
+import ru.yandex.taskmanager.util.Managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +12,7 @@ public class InMemoryTaskManager implements TaskManager {
 	private final HashMap<Integer, Task> tasks = new HashMap<>();
 	private final HashMap<Integer, Epictask> epictasks = new HashMap<>();
 	private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
-	private List<Task> history = new ArrayList<>();
+	private final HistoryManager inMemoryHistoryManager = Managers.getDefaultHistory();
 
 	public ArrayList<Task> getTasksList() {
 		return new ArrayList<>(tasks.values());
@@ -30,7 +31,6 @@ public class InMemoryTaskManager implements TaskManager {
 		return true;
 	}
 
-	//fix: очистить список подзадач одновременно с эпиками
 	public boolean clearEpictasks() {
 		subtasks.clear();
 		epictasks.clear();
@@ -47,26 +47,25 @@ public class InMemoryTaskManager implements TaskManager {
 		return true;
 	}
 
-
 	//feature: добавить сохранение истории при вызове метода
 	public Task getTaskById(int taskId) {
 		Task task;
 
 		if (tasks.containsKey(taskId)) {
 			task = tasks.get(taskId);
-			saveHistory(task);
+			inMemoryHistoryManager.add(task);
 			return task;
 		}
 
 		if (epictasks.containsKey(taskId)) {
 			task = epictasks.get(taskId);
-			saveHistory(task);
+			inMemoryHistoryManager.add(task);
 			return task;
 		}
 
 		if (subtasks.containsKey(taskId)) {
 			task = subtasks.get(taskId);
-			saveHistory(task);
+			inMemoryHistoryManager.add(task);
 			return task;
 		}
 
@@ -154,28 +153,7 @@ public class InMemoryTaskManager implements TaskManager {
 		return new ArrayList<>(epictasks.get(taskId).getSubtasksIds());
 	}
 
-	//feature: добавить метод для сохранения истории просмотра задач и получение истории
-	@Override
-	public List<Task> getHistory() {
-		for (Task task : history) {
-			System.out.print(task.getId() + " ");
-		}
-		return history;
-	}
 
-	private void saveHistory(Task task) {
-		if (history.size() >= 10) {
-			List<Task> newHistory = new ArrayList<>();
-			for (int i = 1; i < history.size(); i++) {
-				newHistory.add(history.get(i));
-			}
-			newHistory.add(task);
-			history = newHistory;
-			return;
-		}
-
-		history.add(task);
-	}
 
 	private void checkStatus(int taskId) {
 		int subtasksAmount = getSubtasks(taskId).size();
