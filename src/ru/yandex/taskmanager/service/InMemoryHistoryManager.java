@@ -2,26 +2,25 @@ package ru.yandex.taskmanager.service;
 
 import ru.yandex.taskmanager.model.Task;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-public class InMemoryHistoryManager implements HistoryManager {
-	private static List<Task> history = new ArrayList<>();
+//Добавлена константа для размера history
+//Реализация history изменена на LinkedList, изменен алгоритм добавления в историю при достижении лимита
+public class InMemoryHistoryManager implements HistoryManager{
+	private final List<Task> history = new LinkedList<>();
+	private final static int HISTORY_CAPACITY = 10;
 
 	@Override
 	public List<Task> getHistory() {
-		return new ArrayList<>(history);
+		return List.copyOf(history);
 	}
 
 	@Override
 	public void add(Task task) {
-		if (history.size() >= 10) {
-			List<Task> newHistory = new ArrayList<>();
-			for (int i = 1; i < history.size(); i++) {
-				newHistory.add(history.get(i));
-			}
-			newHistory.add(task);
-			history = newHistory;
+		if (history.size() >= HISTORY_CAPACITY) {
+			history.remove(0);
+			history.add(task);
 			return;
 		}
 

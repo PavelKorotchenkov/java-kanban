@@ -3,20 +3,21 @@ package ru.yandex.taskmanager.service;
 import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Subtask;
 import ru.yandex.taskmanager.model.Task;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public interface TaskManager {
-	ArrayList<Task> getTasksList();
-	ArrayList<Epictask> getEpictasksList();
-	ArrayList<Subtask> getSubtasksList();
+	//refactor: заменить на List
+	List<Task> getTasksList();
+	List<Epictask> getEpictasksList();
+	List<Subtask> getSubtasksList();
 
 	boolean clearTasks();
 	boolean clearEpictasks();
 	boolean clearSubtasks();
 
 	Task getTaskById(int taskId);
+	Task getEpictaskById(int taskId);
+	Task getSubtaskById(int taskId);
 
 	Task createNewTask(Task task);
 	Epictask createNewEpictask(Epictask task);
@@ -30,5 +31,8 @@ public interface TaskManager {
 	Epictask deleteEpictaskById(int taskId);
 	Subtask deleteSubtaskById(int taskId);
 
-	ArrayList<Integer> getSubtasks(int taskId);
+	List<Integer> getSubtasks(int taskId);
+
+	//refactor: добавить метод просмотра истории в TaskManager
+	List<Task> getHistory();
 }

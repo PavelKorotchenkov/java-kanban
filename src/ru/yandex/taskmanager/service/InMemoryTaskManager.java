@@ -3,40 +3,46 @@ package ru.yandex.taskmanager.service;
 import ru.yandex.taskmanager.model.*;
 import ru.yandex.taskmanager.util.Managers;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
 	private int taskId = 0;
-	private final HashMap<Integer, Task> tasks = new HashMap<>();
-	private final HashMap<Integer, Epictask> epictasks = new HashMap<>();
-	private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+	private final Map<Integer, Task> tasks = new HashMap<>();
+	private final Map<Integer, Epictask> epictasks = new HashMap<>();
+	private final Map<Integer, Subtask> subtasks = new HashMap<>();
 	private final HistoryManager inMemoryHistoryManager = Managers.getDefaultHistory();
 
-	public ArrayList<Task> getTasksList() {
-		return new ArrayList<>(tasks.values());
+	@Override
+	public List<Task> getTasksList() {
+		return List.copyOf(tasks.values());
 	}
 
-	public ArrayList<Epictask> getEpictasksList() {
-		return new ArrayList<>(epictasks.values());
+	@Override
+	public List<Epictask> getEpictasksList() {
+		return List.copyOf(epictasks.values());
 	}
 
-	public ArrayList<Subtask> getSubtasksList() {
-		return new ArrayList<>(subtasks.values());
+	@Override
+	public List<Subtask> getSubtasksList() {
+		return List.copyOf(subtasks.values());
 	}
 
+	@Override
 	public boolean clearTasks() {
 		tasks.clear();
 		return true;
 	}
 
+	@Override
 	public boolean clearEpictasks() {
 		subtasks.clear();
 		epictasks.clear();
 		return true;
 	}
 
+	@Override
 	public boolean clearSubtasks() {
 		for (Epictask epictask : epictasks.values()) {
 			epictask.getSubtasks().clear();
@@ -47,44 +53,46 @@ public class InMemoryTaskManager implements TaskManager {
 		return true;
 	}
 
-	//feature: добавить сохранение истории при вызове метода
-	public Task getTaskById(int taskId) {
-		Task task;
-
-		if (tasks.containsKey(taskId)) {
-			task = tasks.get(taskId);
+	//feature: добавить вспомогательный метод для получения задач, добавить сохранение истории
+	//fix: рефактор паблик геттеров
+	private Task getTask(int taskId, Map<Integer, ? extends Task> taskList) {
+		final Task task = taskList.get(taskId);
+		if (task != null) {
 			inMemoryHistoryManager.add(task);
-			return task;
 		}
-
-		if (epictasks.containsKey(taskId)) {
-			task = epictasks.get(taskId);
-			inMemoryHistoryManager.add(task);
-			return task;
-		}
-
-		if (subtasks.containsKey(taskId)) {
-			task = subtasks.get(taskId);
-			inMemoryHistoryManager.add(task);
-			return task;
-		}
-
-		return null;
+		return task;
 	}
 
+	@Override
+	public Task getTaskById(int taskId) {
+		return getTask(taskId, tasks);
+	}
 
+	@Override
+	public Epictask getEpictaskById(int taskId) {
+		return (Epictask) getTask(taskId, epictasks);
+	}
+
+	@Override
+	public Subtask getSubtaskById(int taskId) {
+		return (Subtask) getTask(taskId, subtasks);
+	}
+
+	@Override
 	public Task createNewTask(Task task) {
 		task.setId(++taskId);
 		tasks.put(taskId, task);
 		return task;
 	}
 
+	@Override
 	public Epictask createNewEpictask(Epictask task) {
 		task.setId(++taskId);
 		epictasks.put(taskId, task);
 		return task;
 	}
 
+	@Override
 	public Subtask createNewSubtask(Subtask task) {
 		task.setId(++taskId);
 		subtasks.put(taskId, task);
@@ -93,6 +101,7 @@ public class InMemoryTaskManager implements TaskManager {
 		return task;
 	}
 
+	@Override
 	public boolean updateTask(Task task) {
 		if (tasks.containsKey(task.getId())) {
 			tasks.get(task.getId()).setName(task.getName());
@@ -104,6 +113,7 @@ public class InMemoryTaskManager implements TaskManager {
 		return false;
 	}
 
+	@Override
 	public boolean updateSubtask(Subtask task) {
 		if (subtasks.containsKey(task.getId())) {
 			subtasks.get(task.getId()).setName(task.getName());
@@ -116,6 +126,7 @@ public class InMemoryTaskManager implements TaskManager {
 		return false;
 	}
 
+	@Override
 	public boolean updateEpictask(Epictask task) {
 		if (epictasks.containsKey(task.getId())) {
 			epictasks.get(task.getId()).setName(task.getName());
@@ -126,10 +137,12 @@ public class InMemoryTaskManager implements TaskManager {
 		return false;
 	}
 
+	@Override
 	public Task deleteTaskById(int taskId) {
 		return tasks.remove(taskId);
 	}
 
+	@Override
 	public Epictask deleteEpictaskById(int taskId) {
 		Epictask epictask = epictasks.remove(taskId);
 
@@ -140,6 +153,7 @@ public class InMemoryTaskManager implements TaskManager {
 		return epictask;
 	}
 
+	@Override
 	public Subtask deleteSubtaskById(int taskId) {
 		Subtask subtask = subtasks.remove(taskId);
 		int epicId = subtask.getEpicTaskId();
@@ -149,17 +163,16 @@ public class InMemoryTaskManager implements TaskManager {
 		return subtask;
 	}
 
-	public ArrayList<Integer> getSubtasks(int taskId) {
-		return new ArrayList<>(epictasks.get(taskId).getSubtasksIds());
+	@Override
+	public List<Integer> getSubtasks(int taskId) {
+		return List.copyOf(epictasks.get(taskId).getSubtasksIds());
 	}
-
-
 
 	private void checkStatus(int taskId) {
 		int subtasksAmount = getSubtasks(taskId).size();
 		int countNew = 0;
 		int countDone = 0;
-		ArrayList<Integer> subtasksIds = getSubtasks(taskId);
+		List<Integer> subtasksIds = getSubtasks(taskId);
 
 		for (int id : subtasksIds) {
 			if (subtasks.get(id).getStatus().equals(Status.NEW)) {
@@ -180,6 +193,13 @@ public class InMemoryTaskManager implements TaskManager {
 		}
 
 		epictasks.get(taskId).setStatus(Status.IN_PROGRESS);
+	}
+
+	//refactor: добавить метод просмотра истории в TaskManager
+	//из менеджера приходит копия истории, поэтому здесь без копии/нового списка
+	@Override
+	public List<Task> getHistory() {
+		return inMemoryHistoryManager.getHistory();
 	}
 }
 
