@@ -12,7 +12,7 @@ public class InMemoryTaskManager implements TaskManager {
 	private final Map<Integer, Task> tasks = new HashMap<>();
 	private final Map<Integer, Epictask> epictasks = new HashMap<>();
 	private final Map<Integer, Subtask> subtasks = new HashMap<>();
-	private final HistoryManager inMemoryHistoryManager = Managers.getDefaultHistory();
+	private final HistoryManager historyManager = Managers.getDefaultHistory();
 
 	@Override
 	public List<Task> getTasksList() {
@@ -29,14 +29,25 @@ public class InMemoryTaskManager implements TaskManager {
 		return List.copyOf(subtasks.values());
 	}
 
+	//feat: добавить historyManager.remove(taskId) в случае очистки списков
 	@Override
 	public boolean clearTasks() {
+		for (Integer id : tasks.keySet()) {
+			historyManager.remove(id);
+		}
 		tasks.clear();
 		return true;
 	}
 
 	@Override
 	public boolean clearEpictasks() {
+		for (Integer id : subtasks.keySet()) {
+			historyManager.remove(id);
+		}
+
+		for (Integer id : epictasks.keySet()) {
+			historyManager.remove(id);
+		}
 		subtasks.clear();
 		epictasks.clear();
 		return true;
@@ -44,6 +55,10 @@ public class InMemoryTaskManager implements TaskManager {
 
 	@Override
 	public boolean clearSubtasks() {
+		for (Integer id : subtasks.keySet()) {
+			historyManager.remove(id);
+		}
+
 		for (Epictask epictask : epictasks.values()) {
 			epictask.getSubtasks().clear();
 			checkStatus(epictask.getId());
@@ -53,12 +68,10 @@ public class InMemoryTaskManager implements TaskManager {
 		return true;
 	}
 
-	//feature: добавить вспомогательный метод для получения задач, добавить сохранение истории
-	//fix: рефактор паблик геттеров
 	private Task getTask(int taskId, Map<Integer, ? extends Task> taskList) {
 		final Task task = taskList.get(taskId);
 		if (task != null) {
-			inMemoryHistoryManager.add(task);
+			historyManager.add(task);
 		}
 		return task;
 	}
@@ -137,8 +150,10 @@ public class InMemoryTaskManager implements TaskManager {
 		return false;
 	}
 
+	//feat: во все методы удаления добавлен метод очистки из истории просмотров historyManager.remove(taskId)
 	@Override
 	public Task deleteTaskById(int taskId) {
+		historyManager.remove(taskId);
 		return tasks.remove(taskId);
 	}
 
@@ -147,9 +162,11 @@ public class InMemoryTaskManager implements TaskManager {
 		Epictask epictask = epictasks.remove(taskId);
 
 		for (Integer id : epictask.getSubtasksIds()) {
+			historyManager.remove(id);
 			subtasks.remove(id);
 		}
 
+		historyManager.remove(taskId);
 		return epictask;
 	}
 
@@ -159,10 +176,11 @@ public class InMemoryTaskManager implements TaskManager {
 		int epicId = subtask.getEpicTaskId();
 		epictasks.get(epicId).getSubtasks().remove((Integer) taskId);
 		checkStatus(epicId);
-
+		historyManager.remove(taskId);
 		return subtask;
 	}
 
+	//Вопрос - у Егора на вебинаре увидел, что у него в эпиках хранятся сабтаски, а не их id, а как в итоге лучше?
 	@Override
 	public List<Integer> getSubtasks(int taskId) {
 		return List.copyOf(epictasks.get(taskId).getSubtasksIds());
@@ -195,11 +213,9 @@ public class InMemoryTaskManager implements TaskManager {
 		epictasks.get(taskId).setStatus(Status.IN_PROGRESS);
 	}
 
-	//refactor: добавить метод просмотра истории в TaskManager
-	//из менеджера приходит копия истории, поэтому здесь без копии/нового списка
 	@Override
 	public List<Task> getHistory() {
-		return inMemoryHistoryManager.getHistory();
+		return historyManager.getHistory();
 	}
 }
 
