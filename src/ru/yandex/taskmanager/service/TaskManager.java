@@ -6,7 +6,6 @@ import ru.yandex.taskmanager.model.Task;
 import java.util.List;
 
 public interface TaskManager {
-	//refactor: заменить на List
 	List<Task> getTasksList();
 	List<Epictask> getEpictasksList();
 	List<Subtask> getSubtasksList();
@@ -33,6 +32,5 @@ public interface TaskManager {
 
 	List<Integer> getSubtasks(int taskId);
 
-	//refactor: добавить метод просмотра истории в TaskManager
 	List<Task> getHistory();
 }

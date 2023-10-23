@@ -42,7 +42,6 @@ public class InMemoryHistoryManager implements HistoryManager {
 		hashMap.put(task.getId(), node);
 	}
 
-	//feat: getTasks будет собирать все задачи из него в обычный ArrayList.
 	private List<Task> getTasks() {
 		List<Task> arrayList = new ArrayList<>();
 		Node<Task> node = head;
@@ -53,16 +52,14 @@ public class InMemoryHistoryManager implements HistoryManager {
 				node = node.next;
 			}
 		}
-		return arrayList;
+		return List.copyOf(arrayList);
 	}
 
-	//feat: Реализация метода getHistory должна перекладывать задачи из связного списка в ArrayList для формирования ответа.
 	@Override
 	public List<Task> getHistory() {
 		return getTasks();
 	}
 
-    //refactor
 	@Override
 	public void add(Task task) {
 		Node<Task> node = hashMap.get(task.getId());
@@ -72,7 +69,6 @@ public class InMemoryHistoryManager implements HistoryManager {
 		linkLast(task);
 	}
 
-	//feat: добавить метод remove (int id)
 	@Override
 	public void remove(int id) {
 		Node<Task> node = hashMap.get(id);
