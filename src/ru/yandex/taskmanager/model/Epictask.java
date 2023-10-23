@@ -1,24 +1,24 @@
 package ru.yandex.taskmanager.model;
 
-import java.util.ArrayList;
+import java.util.*;
 
 public class Epictask extends Task {
-	private ArrayList<Integer> subtasksIds = new ArrayList<>();
+	private final Map<Integer, Subtask> subtasks = new HashMap<>();
 
 	public Epictask(String name, String description) {
 		super(name, description);
 	}
 
-	public ArrayList<Integer> getSubtasksIds() {
-		return subtasksIds;
+	public Collection<Subtask> getSubtasks() {
+		return subtasks.values();
 	}
 
-	public void add(int subtaskId) {
-		subtasksIds.add(subtaskId);
+	public void addSubtask(Subtask subtask) {
+		subtasks.put(subtask.getId(), subtask);
 	}
 
-	public ArrayList<Integer> getSubtasks() {
-		return subtasksIds;
+	public void deleteSubtask(int id) {
+		subtasks.remove(id);
 	}
 
 	@Override
@@ -28,7 +28,7 @@ public class Epictask extends Task {
 				+ ", description=" + getDescription()
 				+ ", status=" + getStatus()
 				+ ", id=" + getId()
-				+ ", subtasks=" + getSubtasks() +
+				+ ", subtasks=" + subtasks.keySet() +
 				'}';
 	}
 }

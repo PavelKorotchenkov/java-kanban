@@ -8,11 +8,11 @@ import ru.yandex.taskmanager.util.Managers;
  * Sprint 5
  * author: Pavel Korotchenkov
  * created 27.09.2023
- * upd 22.10.2023
- * ver. 1.2
+ * upd 23.10.2023
+ * ver. 1.3
  */
 
-//Влад, привет! Обрати пжлст внимание на строку 183 в классе InMemoryTaskManager. Все ещё интересно, что лучше хранить в эпиках - сабы или их id
+//Влад, спасибо!) Сделал рефактор - в Эпиктаск хранятся подзадачи вместо айдишников
 
 public class Main {
 	public static void main(String[] args) {

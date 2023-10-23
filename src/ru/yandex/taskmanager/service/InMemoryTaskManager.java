@@ -29,7 +29,6 @@ public class InMemoryTaskManager implements TaskManager {
 		return List.copyOf(subtasks.values());
 	}
 
-	//feat: добавить historyManager.remove(taskId) в случае очистки списков
 	@Override
 	public boolean clearTasks() {
 		for (Integer id : tasks.keySet()) {
@@ -106,12 +105,12 @@ public class InMemoryTaskManager implements TaskManager {
 	}
 
 	@Override
-	public Subtask createNewSubtask(Subtask task) {
-		task.setId(++taskId);
-		subtasks.put(taskId, task);
-		epictasks.get(task.getEpicTaskId()).add(task.getId());
-		checkStatus(task.getEpicTaskId());
-		return task;
+	public Subtask createNewSubtask(Subtask subtask) {
+		subtask.setId(++taskId);
+		subtasks.put(taskId, subtask);
+		epictasks.get(subtask.getEpicTaskId()).addSubtask(subtask);
+		checkStatus(subtask.getEpicTaskId());
+		return subtask;
 	}
 
 	@Override
@@ -150,7 +149,6 @@ public class InMemoryTaskManager implements TaskManager {
 		return false;
 	}
 
-	//feat: во все методы удаления добавлен метод очистки из истории просмотров historyManager.remove(taskId)
 	@Override
 	public Task deleteTaskById(int taskId) {
 		historyManager.remove(taskId);
@@ -161,9 +159,9 @@ public class InMemoryTaskManager implements TaskManager {
 	public Epictask deleteEpictaskById(int taskId) {
 		Epictask epictask = epictasks.remove(taskId);
 
-		for (Integer id : epictask.getSubtasksIds()) {
-			historyManager.remove(id);
-			subtasks.remove(id);
+		for (Subtask subtask : epictask.getSubtasks()) {
+			historyManager.remove(subtask.getId());
+			subtasks.remove(subtask.getId());
 		}
 
 		historyManager.remove(taskId);
@@ -174,28 +172,27 @@ public class InMemoryTaskManager implements TaskManager {
 	public Subtask deleteSubtaskById(int taskId) {
 		Subtask subtask = subtasks.remove(taskId);
 		int epicId = subtask.getEpicTaskId();
-		epictasks.get(epicId).getSubtasks().remove((Integer) taskId);
+		epictasks.get(epicId).deleteSubtask(taskId);
 		checkStatus(epicId);
 		historyManager.remove(taskId);
 		return subtask;
 	}
 
-	//Вопрос - у Егора на вебинаре увидел, что у него в эпиках хранятся сабтаски, а не их id, а как в итоге лучше?
 	@Override
-	public List<Integer> getSubtasks(int taskId) {
-		return List.copyOf(epictasks.get(taskId).getSubtasksIds());
+	public List<Subtask> getSubtasks(int taskId) {
+		return List.copyOf(epictasks.get(taskId).getSubtasks());
 	}
 
 	private void checkStatus(int taskId) {
 		int subtasksAmount = getSubtasks(taskId).size();
 		int countNew = 0;
 		int countDone = 0;
-		List<Integer> subtasksIds = getSubtasks(taskId);
+		List<Subtask> subtasks = getSubtasks(taskId);
 
-		for (int id : subtasksIds) {
-			if (subtasks.get(id).getStatus().equals(Status.NEW)) {
+		for (Subtask subtask : subtasks) {
+			if (subtask.getStatus().equals(Status.NEW)) {
 				countNew++;
-			} else if (subtasks.get(id).getStatus().equals(Status.DONE)) {
+			} else if (subtask.getStatus().equals(Status.DONE)) {
 				countDone++;
 			}
 		}

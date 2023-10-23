@@ -30,7 +30,7 @@ public interface TaskManager {
 	Epictask deleteEpictaskById(int taskId);
 	Subtask deleteSubtaskById(int taskId);
 
-	List<Integer> getSubtasks(int taskId);
+	List<Subtask> getSubtasks(int taskId);
 
 	List<Task> getHistory();
 }
