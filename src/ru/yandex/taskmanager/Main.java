@@ -8,11 +8,9 @@ import ru.yandex.taskmanager.util.Managers;
  * Sprint 5
  * author: Pavel Korotchenkov
  * created 27.09.2023
- * upd 23.10.2023
+ * upd 26.10.2023
  * ver. 1.3
  */
-
-//Влад, спасибо!) Сделал рефактор - в Эпиктаск хранятся подзадачи вместо айдишников
 
 public class Main {
 	public static void main(String[] args) {
@@ -34,9 +32,6 @@ public class Main {
 
 		Epictask task7 = new Epictask("Эпик Задача №2", "Сложная");
 		inMemoryTaskManager.createNewEpictask(task7);
-
-		inMemoryTaskManager.getTaskById(task1.getId());
-		System.out.println(inMemoryTaskManager.getHistory() + "\n");
 
 		inMemoryTaskManager.getTaskById(task1.getId());
 		System.out.println(inMemoryTaskManager.getHistory() + "\n");

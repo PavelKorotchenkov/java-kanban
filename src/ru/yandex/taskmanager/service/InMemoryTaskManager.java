@@ -60,19 +60,11 @@ public class InMemoryTaskManager implements TaskManager {
 
 		for (Epictask epictask : epictasks.values()) {
 			epictask.getSubtasks().clear();
-			checkStatus(epictask.getId());
+			epictask.setStatus(Status.NEW);
 		}
 
 		subtasks.clear();
 		return true;
-	}
-
-	private Task getTask(int taskId, Map<Integer, ? extends Task> taskList) {
-		final Task task = taskList.get(taskId);
-		if (task != null) {
-			historyManager.add(task);
-		}
-		return task;
 	}
 
 	@Override
@@ -183,6 +175,19 @@ public class InMemoryTaskManager implements TaskManager {
 		return List.copyOf(epictasks.get(taskId).getSubtasks());
 	}
 
+	@Override
+	public List<Task> getHistory() {
+		return historyManager.getHistory();
+	}
+
+	private Task getTask(int taskId, Map<Integer, ? extends Task> taskList) {
+		final Task task = taskList.get(taskId);
+		if (task != null) {
+			historyManager.add(task);
+		}
+		return task;
+	}
+
 	private void checkStatus(int taskId) {
 		int subtasksAmount = getSubtasks(taskId).size();
 		int countNew = 0;
@@ -208,11 +213,6 @@ public class InMemoryTaskManager implements TaskManager {
 		}
 
 		epictasks.get(taskId).setStatus(Status.IN_PROGRESS);
-	}
-
-	@Override
-	public List<Task> getHistory() {
-		return historyManager.getHistory();
 	}
 }
 
