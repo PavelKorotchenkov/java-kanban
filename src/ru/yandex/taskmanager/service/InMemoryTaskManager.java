@@ -30,16 +30,15 @@ public class InMemoryTaskManager implements TaskManager {
 	}
 
 	@Override
-	public boolean clearTasks() {
+	public void clearTasks() {
 		for (Integer id : tasks.keySet()) {
 			historyManager.remove(id);
 		}
 		tasks.clear();
-		return true;
 	}
 
 	@Override
-	public boolean clearEpictasks() {
+	public void clearEpictasks() {
 		for (Integer id : subtasks.keySet()) {
 			historyManager.remove(id);
 		}
@@ -49,11 +48,10 @@ public class InMemoryTaskManager implements TaskManager {
 		}
 		subtasks.clear();
 		epictasks.clear();
-		return true;
 	}
 
 	@Override
-	public boolean clearSubtasks() {
+	public void clearSubtasks() {
 		for (Integer id : subtasks.keySet()) {
 			historyManager.remove(id);
 		}
@@ -64,7 +62,6 @@ public class InMemoryTaskManager implements TaskManager {
 		}
 
 		subtasks.clear();
-		return true;
 	}
 
 	@Override
@@ -83,91 +80,75 @@ public class InMemoryTaskManager implements TaskManager {
 	}
 
 	@Override
-	public Task createNewTask(Task task) {
+	public void createNewTask(Task task) {
 		task.setId(++taskId);
 		tasks.put(taskId, task);
-		return task;
 	}
 
 	@Override
-	public Epictask createNewEpictask(Epictask task) {
+	public void createNewEpictask(Epictask task) {
 		task.setId(++taskId);
 		epictasks.put(taskId, task);
-		return task;
 	}
 
 	@Override
-	public Subtask createNewSubtask(Subtask subtask) {
+	public void createNewSubtask(Subtask subtask) {
 		subtask.setId(++taskId);
 		subtasks.put(taskId, subtask);
 		epictasks.get(subtask.getEpicTaskId()).addSubtask(subtask);
 		checkStatus(subtask.getEpicTaskId());
-		return subtask;
 	}
 
 	@Override
-	public boolean updateTask(Task task) {
+	public void updateTask(Task task) {
 		if (tasks.containsKey(task.getId())) {
 			tasks.get(task.getId()).setName(task.getName());
 			tasks.get(task.getId()).setDescription(task.getDescription());
 			tasks.get(task.getId()).setStatus(task.getStatus());
-			return true;
 		}
-
-		return false;
 	}
 
 	@Override
-	public boolean updateSubtask(Subtask task) {
+	public void updateSubtask(Subtask task) {
 		if (subtasks.containsKey(task.getId())) {
 			subtasks.get(task.getId()).setName(task.getName());
 			subtasks.get(task.getId()).setDescription(task.getDescription());
 			subtasks.get(task.getId()).setStatus(task.getStatus());
 			checkStatus(task.getEpicTaskId());
-			return true;
 		}
-
-		return false;
 	}
 
 	@Override
-	public boolean updateEpictask(Epictask task) {
+	public void updateEpictask(Epictask task) {
 		if (epictasks.containsKey(task.getId())) {
 			epictasks.get(task.getId()).setName(task.getName());
 			epictasks.get(task.getId()).setDescription(task.getDescription());
-			return true;
 		}
-
-		return false;
 	}
 
 	@Override
-	public Task deleteTaskById(int taskId) {
+	public void deleteTaskById(int taskId) {
+		tasks.remove(taskId);
 		historyManager.remove(taskId);
-		return tasks.remove(taskId);
 	}
 
 	@Override
-	public Epictask deleteEpictaskById(int taskId) {
+	public void deleteEpictaskById(int taskId) {
 		Epictask epictask = epictasks.remove(taskId);
-
 		for (Subtask subtask : epictask.getSubtasks()) {
 			historyManager.remove(subtask.getId());
 			subtasks.remove(subtask.getId());
 		}
-
 		historyManager.remove(taskId);
-		return epictask;
 	}
 
 	@Override
-	public Subtask deleteSubtaskById(int taskId) {
+	public void deleteSubtaskById(int taskId) {
 		Subtask subtask = subtasks.remove(taskId);
 		int epicId = subtask.getEpicTaskId();
 		epictasks.get(epicId).deleteSubtask(taskId);
 		checkStatus(epicId);
 		historyManager.remove(taskId);
-		return subtask;
 	}
 
 	@Override
@@ -178,6 +159,10 @@ public class InMemoryTaskManager implements TaskManager {
 	@Override
 	public List<Task> getHistory() {
 		return historyManager.getHistory();
+	}
+
+	public HistoryManager getHistoryManager() {
+		return historyManager;
 	}
 
 	private Task getTask(int taskId, Map<Integer, ? extends Task> taskList) {
@@ -213,6 +198,10 @@ public class InMemoryTaskManager implements TaskManager {
 		}
 
 		epictasks.get(taskId).setStatus(Status.IN_PROGRESS);
+	}
+
+	protected void setTaskId(int taskId) {
+		this.taskId = taskId;
 	}
 }
 

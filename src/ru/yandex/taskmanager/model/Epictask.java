@@ -3,10 +3,16 @@ package ru.yandex.taskmanager.model;
 import java.util.*;
 
 public class Epictask extends Task {
+	private final TaskType type = TaskType.EPIC;
 	private final Map<Integer, Subtask> subtasks = new HashMap<>();
 
 	public Epictask(String name, String description) {
 		super(name, description);
+	}
+
+	@Override
+	public TaskType getType() {
+		return this.type;
 	}
 
 	public Collection<Subtask> getSubtasks() {

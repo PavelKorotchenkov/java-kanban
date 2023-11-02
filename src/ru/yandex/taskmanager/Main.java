@@ -5,11 +5,11 @@ import ru.yandex.taskmanager.service.TaskManager;
 import ru.yandex.taskmanager.util.Managers;
 
 /**
- * Sprint 5
+ * Sprint 6
  * author: Pavel Korotchenkov
  * created 27.09.2023
- * upd 26.10.2023
- * ver. 1.3
+ * upd 02.11.2023
+ * ver. 1.4
  */
 
 public class Main {
@@ -32,6 +32,8 @@ public class Main {
 
 		Epictask task7 = new Epictask("Эпик Задача №2", "Сложная");
 		inMemoryTaskManager.createNewEpictask(task7);
+
+		System.out.println(task7.getType());
 
 		inMemoryTaskManager.getTaskById(task1.getId());
 		System.out.println(inMemoryTaskManager.getHistory() + "\n");

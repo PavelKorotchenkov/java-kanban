@@ -5,11 +5,16 @@ public class Task {
 	private String name;
 	private String description;
 	private Status status;
+	private final TaskType type = TaskType.TASK;
 
 	public Task(String name, String description) {
 		this.name = name;
 		this.description = description;
 		this.status = Status.NEW;
+	}
+
+	public TaskType getType() {
+		return this.type;
 	}
 
 	public String getName() {

@@ -10,25 +10,25 @@ public interface TaskManager {
 	List<Epictask> getEpictasksList();
 	List<Subtask> getSubtasksList();
 
-	boolean clearTasks();
-	boolean clearEpictasks();
-	boolean clearSubtasks();
+	void clearTasks();
+	void clearEpictasks();
+	void clearSubtasks();
 
 	Task getTaskById(int taskId);
 	Task getEpictaskById(int taskId);
 	Task getSubtaskById(int taskId);
 
-	Task createNewTask(Task task);
-	Epictask createNewEpictask(Epictask task);
-	Subtask createNewSubtask(Subtask task);
+	void createNewTask(Task task);
+	void createNewEpictask(Epictask task);
+	void createNewSubtask(Subtask task);
 
-	boolean updateTask(Task task);
-	boolean updateSubtask(Subtask task);
-	boolean updateEpictask(Epictask task);
+	void updateTask(Task task);
+	void updateSubtask(Subtask task);
+	void updateEpictask(Epictask task);
 
-	Task deleteTaskById(int taskId);
-	Epictask deleteEpictaskById(int taskId);
-	Subtask deleteSubtaskById(int taskId);
+	void deleteTaskById(int taskId);
+	void deleteEpictaskById(int taskId);
+	void deleteSubtaskById(int taskId);
 
 	List<Subtask> getSubtasks(int taskId);
 
