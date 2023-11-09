@@ -1,11 +1,12 @@
 id,type,name,status,description,epic
 1,TASK,Задача №1,IN_PROGRESS,1,
 2,TASK,Задача №2,NEW,2,
-6,TASK,New task,NEW,after load,
-7,TASK,New task2,NEW,after load,
+7,TASK,Задача №7,NEW,7,
+8,TASK,New task 8,NEW,after load 8,
+9,TASK,New task 9,NEW,after load 9,
 3,EPIC,Эпик Задача №1,IN_PROGRESS,3,
 6,EPIC,Эпик Задача №2,NEW,6,
 4,SUBTASK,Подзадача №1,NEW,4,3
 5,SUBTASK,Подзадача №2,IN_PROGRESS,5,3
 
-2,3,5,4,1,6,7
+2,3,6,5,4,1,8,9,7

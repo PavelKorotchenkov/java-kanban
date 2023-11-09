@@ -36,6 +36,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 		Epictask task6 = new Epictask("Эпик Задача №2", "6");
 		manager.createNewEpictask(task6);
 
+		Task task7 = new Task("Задача №7", "7");
+		manager.createNewTask(task7);
+
 		manager.getTaskById(task1.getId());
 		manager.getTaskById(task2.getId());
 		manager.getEpictaskById(task3.getId());
@@ -52,19 +55,20 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
 		//load from file
 		TaskManager manager1 = FileBackedTasksManager.load(new File(path));
+		System.out.println("FIRST LOAD");
 		System.out.println(manager1.getTasksList());
 		System.out.println(manager1.getEpictasksList());
 		System.out.println(manager1.getSubtasksList());
 		System.out.println(manager1.getHistory());
-
-
 		System.out.println();
-		Task task10 = new Task("New task", "after load");
-		manager1.createNewTask(task10);
-		Task task11 = new Task("New task2", "after load");
-		manager1.createNewTask(task11);
-		manager1.getTaskById(task10.getId());
-		manager1.getTaskById(task11.getId());
+
+		Task task8 = new Task("New task 8", "after load 8");
+		manager1.createNewTask(task8);
+		Task task9 = new Task("New task 9", "after load 9");
+		manager1.createNewTask(task9);
+		manager1.getTaskById(task8.getId());
+		manager1.getTaskById(task9.getId());
+
 		System.out.println("AFTER LOAD AND CREATING NEW TASKS:");
 		System.out.println(manager1.getTasksList());
 		System.out.println(manager1.getEpictasksList());
@@ -72,6 +76,15 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 		System.out.println("NEW HISTORY");
 		System.out.println(manager1.getHistory());
 
+		System.out.println("GET");
+		System.out.println(manager1.getTaskById(7));
+
+	}
+
+	private final String path;
+
+	public FileBackedTasksManager(String path) {
+		this.path = path;
 	}
 
 	private void save() {
@@ -108,57 +121,51 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 			throw new ManagerSaveException("Ошибка при загрузке");
 		}
 
-		String[] array = string.split("\n", -1);
-		if (array.length < 2) {
+		String[] fileContents = string.split("\n", -1);
+		
+		if (fileContents.length < 2) {
 			return manager;
 		}
 
-		for (int i = 1; i < array.length - 2; i++) {
-			String[] list = array[i].split(",");
-			Task task = FileStringConverter.taskFromString(array[i]);
-			manager.setTaskId(task.getId() - 1);
+		int maxId = -1; // refactor
+		for (int line = 1; line < fileContents.length - 2; line++) {
+			Task task = FileStringConverter.taskFromString(fileContents[line]);
+			final int id = task.getId();// refactor
+			if (task.getId() > maxId) {// refactor
+				maxId = task.getId();
+			}
 
 			switch (task.getType()) {
 				case TASK:
-					manager.createNewTask(task);
+					manager.tasks.put(id,task);
 					break;
 				case SUBTASK:
-					manager.createNewSubtask((Subtask) task);
+					manager.subtasks.put(id,(Subtask) task);
 					break;
 				case EPIC:
-					manager.createNewEpictask((Epictask) task);
+					manager.epictasks.put(id,(Epictask) task);
 					break;
 			}
-
-			task.setId(Integer.parseInt(list[0]));
 		}
+		manager.taskId = maxId;  // refactor
 
-		if (array[array.length - 1].isBlank()) {
+		if (fileContents[fileContents.length - 1].isBlank()) {
 			return manager;
 		}
 
-		List<Integer> history = FileStringConverter.historyFromString(array[array.length - 1]);
+		List<Integer> history = FileStringConverter.historyFromString(fileContents[fileContents.length - 1]);
+
 		for (Integer i : history) {
-			Task task = manager.getTaskById(i);
-			if (task != null) {
-				continue;
+			if (manager.tasks.containsKey(i)) {
+				manager.getTask(i, manager.tasks);
+			} else if (manager.epictasks.containsKey(i)) {
+				manager.getTask(i, manager.epictasks);
+			} else if (manager.subtasks.containsKey(i)){
+				manager.getTask(i, manager.subtasks);
 			}
-
-			task = manager.getEpictaskById(i);
-			if (task != null) {
-				continue;
-			}
-
-			task = manager.getSubtaskById(i);
 		}
 
 		return manager;
-	}
-
-	private final String path;
-
-	public FileBackedTasksManager(String path) {
-		this.path = path;
 	}
 
 	@Override
