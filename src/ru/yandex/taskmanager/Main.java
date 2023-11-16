@@ -5,11 +5,11 @@ import ru.yandex.taskmanager.service.TaskManager;
 import ru.yandex.taskmanager.util.Managers;
 
 /**
- * Sprint 6
+ * Sprint 7
  * author: Pavel Korotchenkov
  * created 27.09.2023
- * upd 02.11.2023
- * ver. 1.4
+ * upd 16.11.2023
+ * ver. 1.5
  */
 
 public class Main {
