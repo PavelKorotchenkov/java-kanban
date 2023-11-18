@@ -62,6 +62,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 		System.out.println(manager1.getHistory());
 		System.out.println();
 
+
 		Task task8 = new Task("New task 8", "after load 8");
 		manager1.createNewTask(task8);
 		Task task9 = new Task("New task 9", "after load 9");
@@ -122,7 +123,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 		}
 
 		String[] fileContents = string.split("\n", -1);
-		
+
 		if (fileContents.length < 2) {
 			return manager;
 		}

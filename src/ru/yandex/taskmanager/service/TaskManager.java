@@ -15,8 +15,8 @@ public interface TaskManager {
 	void clearSubtasks();
 
 	Task getTaskById(int taskId);
-	Task getEpictaskById(int taskId);
-	Task getSubtaskById(int taskId);
+	Epictask getEpictaskById(int taskId);
+	Subtask getSubtaskById(int taskId);
 
 	void createNewTask(Task task);
 	void createNewEpictask(Epictask task);
