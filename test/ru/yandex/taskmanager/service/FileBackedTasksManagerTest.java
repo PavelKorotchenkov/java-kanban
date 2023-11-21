@@ -2,43 +2,38 @@ package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import ru.yandex.taskmanager.exception.ManagerSaveException;
 import ru.yandex.taskmanager.model.Epictask;
+import ru.yandex.taskmanager.model.Status;
 import ru.yandex.taskmanager.model.Subtask;
 import ru.yandex.taskmanager.model.Task;
-import ru.yandex.taskmanager.model.TaskType;
-import ru.yandex.taskmanager.util.FileStringConverter;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	File file = new File("./resources/test.csv");
 
-	private String[] readContents() {
-		String string = "";
-		try {
-			string = Files.readString(Path.of(file.getAbsolutePath()));
-		} catch (IOException e) {
-			e.getMessage();
-		}
-		String[] tasks = string.split("\n");
-		return tasks;
+	/**
+	 * TESTING GET TASKS LIST
+	 */
+
+	@Test
+	void tasksListShouldContainTaskAfterCreated() {
+		super.tasksListShouldContainTaskAfterCreated(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertArrayEquals(List.of(fileManager2.getTaskById(1), fileManager2.getTaskById(2)).
+				toArray(), fileManager2.getTasksList().toArray());
 	}
 
 	@Test
 	void afterLoadShouldHaveSameListsSameHistoryAndIdShouldBeMaxIdCreated() {
-		Task task = new Task("task", "easy");
-		fileManager.createNewTask(task);
-		Epictask epictask = new Epictask("epic", "hard");
-		fileManager.createNewEpictask(epictask);
-		Subtask subtask = new Subtask("subtask", "medium", epictask.getId());
-		fileManager.createNewSubtask(subtask);
 		fileManager.getTaskById(1);
-		fileManager.getEpictaskById(2);
-		fileManager.getSubtaskById(3);
+		fileManager.getEpictaskById(3);
+		fileManager.getSubtaskById(5);
 
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
 
@@ -46,41 +41,37 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 		Assertions.assertArrayEquals(fileManager.getTasksList().toArray(), fileManager2.getTasksList().toArray());
 		Assertions.assertArrayEquals(fileManager.getEpictasksList().toArray(), fileManager2.getEpictasksList().toArray());
 		Assertions.assertArrayEquals(fileManager.getSubtasksList().toArray(), fileManager2.getSubtasksList().toArray());
-		Assertions.assertArrayEquals(List.of(task, epictask, subtask).toArray(), fileManager.getHistory().toArray());
+		Assertions.assertArrayEquals(List.of(fileManager.getTaskById(1), fileManager.getEpictaskById(3),
+				fileManager.getSubtaskById(5)).toArray(), fileManager.getHistory().toArray());
 	}
 
 	@Test
 	void afterLoadWithNoHistoryShouldHaveSameListsAndEmptyHistory() {
-		Task task = new Task("task", "easy");
-		fileManager.createNewTask(task);
-		Epictask epictask = new Epictask("epic", "hard");
-		fileManager.createNewEpictask(epictask);
-		Subtask subtask = new Subtask("subtask", "medium", epictask.getId());
-		fileManager.createNewSubtask(subtask);
-
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
 
 		Assertions.assertArrayEquals(fileManager.getTasksList().toArray(), fileManager2.getTasksList().toArray());
 		Assertions.assertArrayEquals(fileManager.getEpictasksList().toArray(), fileManager2.getEpictasksList().toArray());
 		Assertions.assertArrayEquals(fileManager.getSubtasksList().toArray(), fileManager2.getSubtasksList().toArray());
+		System.out.println(fileManager.getHistory());
 		Assertions.assertEquals(0, fileManager.getHistory().size());
 	}
 
 	@Test
 	void afterLoadEpictaskWithoutSubtasksShouldCreateEpicWithoutSubtasks() {
-		Epictask epictask = new Epictask("epic", "hard");
-		fileManager.createNewEpictask(epictask);
-
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(0, fileManager2.getEpictaskById(4).getSubtasks().size());
+	}
 
-		Assertions.assertEquals(0, fileManager2.getEpictaskById(1).getSubtasks().size());
+	@Test
+	void afterLoadEpictaskWithSubtasksShouldCreateEpicWithSubtasks() {
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(2, fileManager2.getEpictaskById(3).getSubtasks().size());
 	}
 
 	@Test
 	void afterLoadEmptyFileShouldHaveEmptyListsAndEmptyHistory() {
-		Task task = new Task("task", "easy");
-		fileManager.createNewTask(task);
 		fileManager.clearTasks();
+		fileManager.clearEpictasks();
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
 
 		Assertions.assertEquals(0, fileManager2.getTasksList().size());
@@ -89,149 +80,292 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 		Assertions.assertEquals(0, fileManager.getHistory().size());
 	}
 
+	/**
+	 * TESTING CLEAR TASKS
+	 */
+
 	@Test
-	void taskManagerShouldBeEmptyAfterClearTasksList() {
-		super.taskManagerShouldBeEmptyAfterClearTasksList();
-		fileManager.clearTasks();
-		int length = readContents().length;
-		Assertions.assertEquals(1, length);
+	void clearTasksShouldOnlyRemoveTasks() {
+		super.clearTasksShouldOnlyRemoveTasks(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(0, fileManager2.getTasksList().size());
+		Assertions.assertEquals(2, fileManager2.getEpictasksList().size());
+		Assertions.assertEquals(2, fileManager2.getSubtasksList().size());
 	}
 
 	@Test
-	void taskManagerShouldBeEmptyAfterClearEpicsList() {
-		super.taskManagerShouldBeEmptyAfterClearEpicsList();
-		fileManager.clearEpictasks();
-		int length = readContents().length;
-		Assertions.assertEquals(1, length);
+	void clearEpictasksShouldRemoveEpictasksAndSubtasks() {
+		super.clearEpictasksShouldRemoveEpictasksAndSubtasks(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(0, fileManager2.getEpictasksList().size());
+		Assertions.assertEquals(0, fileManager2.getSubtasksList().size());
+		Assertions.assertEquals(2, fileManager2.getTasksList().size());
 	}
 
 	@Test
-	void taskManagerShouldHave1EpicAnd0SubAfterClearSubsList() {
-		super.taskManagerShouldHave1EpicAnd0SubAfterClearSubsList();
-		fileManager.clearSubtasks();
-		String[] tasks = readContents();
-		int length = tasks.length;
+	void clearSubtasksShouldOnlyRemoveSubtasks() {
+		super.clearSubtasksShouldOnlyRemoveSubtasks(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(0, fileManager2.getSubtasksList().size());
+		Assertions.assertEquals(2, fileManager2.getEpictasksList().size());
+		Assertions.assertEquals(2, fileManager2.getTasksList().size());
+	}
 
-		Task epictask = FileStringConverter.taskFromString(tasks[1]);
-		Assertions.assertEquals(2, length);
-		Assertions.assertEquals(TaskType.EPIC, epictask.getType());
-		fileManager.clearEpictasks();
+	/**
+	 * TESTING getTaskById
+	 */
+
+	@Test
+	void getTaskByIdShouldReturnTaskWithThatId() {
+		super.getTaskByIdShouldReturnTaskWithThatId(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(1, fileManager2.getTaskById(1).getId());
+		Assertions.assertEquals("Task", fileManager2.getTaskById(1).getName());
 	}
 
 	@Test
-	void getTaskByIdShouldSaveTaskToFile() {
-		super.getTaskByIdShouldReturnTask();
-		int taskID = fileManager.getTaskById(1).getId();
-		String[] tasks = readContents();
-		List<Integer> history = FileStringConverter.historyFromString(tasks[tasks.length - 1]);
-		Assertions.assertEquals(taskID, history.get(0));
+	void getEpictaskByIdShouldReturnEpictaskWithThatId() {
+		super.getEpictaskByIdShouldReturnEpictaskWithThatId(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(3, fileManager2.getEpictaskById(3).getId());
+		Assertions.assertEquals("Epictask", fileManager2.getEpictaskById(3).getName());
 	}
 
 	@Test
-	void getEpicTaskByIdShouldSaveTaskToFile() {
-		super.getEpicaskByIdShouldReturnEpictask();
-		int taskID = fileManager.getEpictaskById(1).getId();
-		String[] tasks = readContents();
-		List<Integer> history = FileStringConverter.historyFromString(tasks[tasks.length - 1]);
-		Assertions.assertEquals(taskID, history.get(0));
+	void getSubtaskByIdShouldReturnSubtaskWithThatId() {
+		super.getSubtaskByIdShouldReturnSubtaskWithThatId(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(5, fileManager2.getSubtaskById(5).getId());
+		Assertions.assertEquals("Subtask", fileManager2.getSubtaskById(5).getName());
 	}
 
 	@Test
-	void getSubTaskByIdShouldSaveTaskToFile() {
-		super.getSubtaskByIdShouldReturnSubtask();
-		int taskID = fileManager.getSubtaskById(2).getId();
-		String[] tasks = readContents();
-		List<Integer> history = FileStringConverter.historyFromString(tasks[tasks.length - 1]);
-		Assertions.assertEquals(taskID, history.get(0));
+	void getTaskEpictaskSubtaskByIdShouldReturnNullIfThatListIsEmpty() {
+		super.getTaskEpictaskSubtaskByIdShouldReturnNullIfThatListIsEmpty(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		fileManager2.clearSubtasks();
+		Assertions.assertNull(fileManager2.getSubtaskById(4));
+		fileManager2.clearTasks();
+		fileManager2.clearEpictasks();
+		Assertions.assertNull(fileManager2.getTaskById(1));
+		Assertions.assertNull(fileManager2.getEpictaskById(3));
 	}
+
+	/**
+	 * TESTING CREATE NEW TASK
+	 */
 
 	@Test
 	void createNewTaskShouldSetIdAndAddToTasksListAndSaveToFile() {
-		super.createNewTaskShouldSetIdAndAddToTasksList();
-		int length = readContents().length;
-		String[] attr = readContents()[1].split(",");
-		int taskId = Integer.parseInt(attr[0]);
-		Assertions.assertEquals(2, length);
-		Assertions.assertEquals(1, taskId);
+		super.createNewTaskShouldSetIdAndAddToTasksList(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(1, fileManager2.getTaskById(1).getId());
 	}
 
 	@Test
 	void createNewEpicTaskShouldSetIdAndAddToEpicTasksListAndSaveToFile() {
-		super.createNewEpicTaskShouldSetIdAndAddToEpicTasksList();
-		int length = readContents().length;
-		String[] attr = readContents()[1].split(",");
-		int taskId = Integer.parseInt(attr[0]);
-		Assertions.assertEquals(2, length);
-		Assertions.assertEquals(1, taskId);
+		super.createNewEpictaskShouldSetIdAndAddToEpictasksList(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(3, fileManager2.getEpictaskById(3).getId());
 	}
 
 	@Test
 	void createNewSubTaskShouldSetIdAndAddToEpicTasksListAndSaveToFile() {
-		super.createNewSubTaskShouldSetIdAndAddToEpicTasksList();
-		int length = readContents().length;
-		String[] attr = readContents()[2].split(",");
-		int taskId = Integer.parseInt(attr[0]);
-		Assertions.assertEquals(3, length);
-		Assertions.assertEquals(2, taskId);
+		super.createNewSubtaskShouldSetIdAndAddToSubtasksList(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(5, fileManager2.getSubtaskById(5).getId());
 	}
+
+	/**
+	 * TESTING UPDATE TASK
+	 */
 
 	@Test
 	void taskShouldHaveNewDescriptionAfterUpdateAndSaveToFile() {
-		super.taskShouldHaveNewDescriptionAfterUpdate();
-		fileManager.updateTask(fileManager.getTaskById(1));
-		String[] content = readContents()[1].split(",");
-		String description = content[4];
-		Assertions.assertEquals("after update", description);
+		super.taskShouldHaveNewDescriptionAfterUpdate(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals("after update", fileManager2.getTaskById(1).getDescription());
 	}
 
 	@Test
 	void epictaskShouldHaveNewDescriptionAfterUpdateAndSaveToFile() {
-		super.epictaskShouldHaveNewDescriptionAfterUpdate();
-		fileManager.updateEpictask(fileManager.getEpictaskById(1));
-		String[] content = readContents()[1].split(",");
-		String description = content[4];
-		Assertions.assertEquals("after update", description);
+		super.epictaskShouldHaveNewDescriptionAfterUpdate(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals("after update", fileManager2.getEpictaskById(3).getDescription());
 	}
 
 	@Test
 	void subtaskShouldHaveNewDescriptionAfterUpdateAndSaveToFile() {
-		super.subtaskShouldHaveNewDescriptionAfterUpdate();
-		fileManager.updateSubtask(fileManager.getSubtaskById(2));
-		String[] content = readContents()[2].split(",");
-		String description = content[4];
-		Assertions.assertEquals("after update", description);
+		super.subtaskShouldHaveNewDescriptionAfterUpdate(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals("after update", fileManager2.getSubtaskById(5).getDescription());
 	}
+
+	/**
+	 * TESTING DELETE TASK
+	 */
 
 	@Test
 	void taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1AndSaveToFile() {
-		super.taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1();
-		fileManager.deleteTaskById(1);
-		int length = readContents().length;
-		String[] content = readContents()[1].split(",");
-		int taskId = Integer.parseInt(content[0]);
-		Assertions.assertEquals(2, taskId);
-		Assertions.assertEquals(2, length);
+		super.taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertNull(fileManager2.getTaskById(1));
 	}
 
 	@Test
-	void epictaskWithId1ShouldBeDeletedAfterDeleteEpictaskWithId1() {
-		super.epictaskWithId1ShouldBeDeletedAfterDeleteEpictaskWithId1();
-		fileManager.deleteEpictaskById(1);
-		int length = readContents().length;
-		String[] content = readContents()[1].split(",");
-		int taskId = Integer.parseInt(content[0]);
-		Assertions.assertEquals(2, taskId);
-		Assertions.assertEquals(2, length);
+	void epictaskWithId3ShouldBeDeletedAfterDeleteEpictaskWithId3() {
+		super.epictaskWithId3ShouldBeDeletedAfterDeleteEpictaskWithId3(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertNull(fileManager2.getEpictaskById(3));
 	}
 
 	@Test
-	void subtaskWithId2ShouldBeDeletedAfterDeleteSubtaskWithId2() {
-		super.subtaskWithId2ShouldBeDeletedAfterDeleteSubtaskWithId2();
-		fileManager.deleteSubtaskById(2);
-		int length = readContents().length;
-		String[] content = readContents()[2].split(",");
-		int taskId = Integer.parseInt(content[0]);
-		Assertions.assertEquals(3, taskId);
-		Assertions.assertEquals(3, length);
+	void subtaskWithId5ShouldBeDeletedAfterDeleteSubtaskWithId5() {
+		super.subtaskWithId5ShouldBeDeletedAfterDeleteSubtaskWithId5(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertNull(fileManager2.getSubtaskById(5));
 	}
+
+	/**
+	 * TESTING getSubtasks
+	 */
+
+	@Test
+	void shouldReturnListOfSubtasks() {
+		super.shouldReturnListOfSubtasks(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Collection<Subtask> subtasks = fileManager2.getEpictaskById(3).getSubtasks();
+
+		Assertions.assertArrayEquals(List.of(fileManager2.getSubtaskById(5), fileManager2
+				.getSubtaskById(6)).toArray(), subtasks.toArray());
+	}
+
+	/**
+	 * TESTING EPIC STATUS
+	 */
+
+	@Test
+	void epicStatusIsNewWhenEpictaskIsCreated() {
+		super.epicStatusIsNewWhenEpictaskIsCreated(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(Status.NEW, fileManager2.getEpictaskById(4).getStatus());
+	}
+
+	@Test
+	void epicStatusIsNewWhenAllSubtasksAreNew() {
+		super.epicStatusIsNewWhenAllSubtasksAreNew(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(Status.NEW, fileManager2.getEpictaskById(3).getStatus());
+	}
+
+	@Test
+	void epicStatusIsDoneWhenAllSubtasksAreDone() {
+		super.epicStatusIsDoneWhenAllSubtasksAreDone(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(Status.DONE, fileManager2.getEpictaskById(3).getStatus());
+	}
+
+	@Test
+	void epicStatusIsInProgressWhenSubtasksAreNewAndDone() {
+		super.epicStatusIsInProgressWhenSubtasksAreNewAndDone(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(Status.IN_PROGRESS, fileManager2.getEpictaskById(3).getStatus());
+	}
+
+	@Test
+	void epicStatusIsInProgressWhenAllSubtasksAreInProgress() {
+		super.epicStatusIsInProgressWhenAllSubtasksAreInProgress(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(Status.IN_PROGRESS, fileManager2.getEpictaskById(3).getStatus());
+	}
+
+	/**
+	 * TESTING HISTORY
+	 */
+	@Test
+	void shouldReturnHistoryAsListOfTasksWithId1Id2Id3Id5() {
+		super.shouldReturnHistoryAsListOfTasksWithId1Id2Id3Id5(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		List<Task> expected = new ArrayList<>();
+
+		expected.add(fileManager2.getTaskById(1));
+		expected.add(fileManager2.getTaskById(2));
+		expected.add(fileManager2.getEpictaskById(3));
+		expected.add(fileManager2.getSubtaskById(5));
+		Assertions.assertArrayEquals(expected.toArray(), fileManager2.getHistory().toArray());
+	}
+
+	@Test
+	void getTaskByIdShouldSaveTaskToHistory() {
+		Task task = fileManager.getTaskById(1);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertArrayEquals(List.of(task).toArray(), fileManager2.getHistory().toArray());
+	}
+
+	@Test
+	void getEpictaskByIdShouldSaveEpictaskToHistory() {
+		Epictask epictask = fileManager.getEpictaskById(3);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertArrayEquals(List.of(epictask).toArray(), fileManager2.getHistory().toArray());
+	}
+
+	@Test
+	void getSubTaskByIdShouldSaveTaskToHistory() {
+		Subtask subtask = fileManager.getSubtaskById(5);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertArrayEquals(List.of(subtask).toArray(), fileManager2.getHistory().toArray());
+	}
+
+	@Test
+	void taskShouldGoToTheEndOfHistoryAfterGetTaskById() {
+		List<Task> expected = new ArrayList<>();
+		fileManager.getTaskById(1);
+		expected.add(fileManager.getTaskById(2));
+		expected.add(fileManager.getTaskById(1));
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertArrayEquals(expected.toArray(), fileManager2.getHistory().toArray());
+	}
+
+	/**
+	 * TESTING TIME AND DURATION
+	 */
+
+	@Test
+	void shouldCalculateTaskEndTime() {
+		super.shouldCalculateTaskEndTime(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(20));
+		Assertions.assertEquals(endTime.getMinute(), fileManager2.getTaskById(1).getEndTime().getMinute());
+	}
+
+	@Test
+	void shouldCalculateEpictaskEndTime() {
+		super.shouldCalculateEpictaskEndTime(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(30));
+		Assertions.assertEquals(endTime.getMinute(), fileManager2.getEpictaskById(3).getEndTime().getMinute());
+	}
+
+	@Test
+	void shouldCalculateSubtaskEndTime() {
+		super.shouldCalculateSubtaskEndTime(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(20));
+		Assertions.assertEquals(endTime.getMinute(), fileManager2.getSubtaskById(5).getEndTime().getMinute());
+	}
+
+	/**
+	 * TESTING getStartTimeSort
+	 */
+
+	//TODO to add serialization for sorted TreeSet
+
+	/*@Test
+	void shouldSortFromEarliestToLatestStartTime() {
+		super.shouldSortFromEarliestToLatestStartTime(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		List<Task> testList = new ArrayList<>(fileManager2.getTaskSortedByStartTime());
+		Assertions.assertEquals(7, testList.get(0).getId());
+		Assertions.assertEquals(8, testList.get(5).getId());
+	}*/
 }

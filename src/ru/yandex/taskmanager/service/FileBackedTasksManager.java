@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
@@ -18,25 +20,25 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 	public static void main(String[] args) {
 		String path = "./resources/saved.csv";
 		TaskManager manager = Managers.getDefault();
-		Task task1 = new Task("Задача №1", "1");
+		Task task1 = new Task("Задача №1", "1", LocalDateTime.now(), Duration.ofMinutes(10));
 		manager.createNewTask(task1);
 
-		Task task2 = new Task("Задача №2", "2");
+		Task task2 = new Task("Задача №2", "2", LocalDateTime.now(), Duration.ofMinutes(10));
 		manager.createNewTask(task2);
 
 		Epictask task3 = new Epictask("Эпик Задача №1", "3");
 		manager.createNewEpictask(task3);
 
-		Subtask task4 = new Subtask("Подзадача №1", "4", task3.getId());
+		Subtask task4 = new Subtask("Подзадача №1", "4", LocalDateTime.now(), Duration.ofMinutes(10), task3.getId());
 		manager.createNewSubtask(task4);
 
-		Subtask task5 = new Subtask("Подзадача №2", "5", task3.getId());
+		Subtask task5 = new Subtask("Подзадача №2", "5", LocalDateTime.now(), Duration.ofMinutes(10), task3.getId());
 		manager.createNewSubtask(task5);
 
 		Epictask task6 = new Epictask("Эпик Задача №2", "6");
 		manager.createNewEpictask(task6);
 
-		Task task7 = new Task("Задача №7", "7");
+		Task task7 = new Task("Задача №7", "7", LocalDateTime.now(), Duration.ofMinutes(10));
 		manager.createNewTask(task7);
 
 		manager.getTaskById(task1.getId());
@@ -61,11 +63,23 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 		System.out.println(manager1.getSubtasksList());
 		System.out.println(manager1.getHistory());
 		System.out.println();
+		System.out.println("CHECKING EPIC TIME");
+		System.out.println(manager1.getEpictaskById(3).getStartTime());
+		System.out.println(manager1.getEpictaskById(3).getEndTime());
+		System.out.println(manager1.getEpictaskById(3).getDuration());
+		System.out.println("subtasks list");
+		System.out.println(manager1.getSubtasks(3));
+		System.out.println("subtasks list end");
+		System.out.println(manager1.getSubtaskById(4).getStartTime());
+		System.out.println(manager1.getSubtaskById(4).getEndTime());
+		System.out.println(manager1.getSubtaskById(4).getDuration());
+		System.out.println("TIME CHECK END");
+		System.out.println();
 
 
-		Task task8 = new Task("New task 8", "after load 8");
+		Task task8 = new Task("New task 8", "after load 8", LocalDateTime.now(), Duration.ofMinutes(10));
 		manager1.createNewTask(task8);
-		Task task9 = new Task("New task 9", "after load 9");
+		Task task9 = new Task("New task 9", "after load 9", LocalDateTime.now(), Duration.ofMinutes(10));
 		manager1.createNewTask(task9);
 		manager1.getTaskById(task8.getId());
 		manager1.getTaskById(task9.getId());
@@ -79,7 +93,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
 		System.out.println("GET");
 		System.out.println(manager1.getTaskById(7));
-
 	}
 
 	private final String path;
@@ -89,7 +102,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 	}
 
 	private void save() {
-		String header = "id,type,name,status,description,epic\n";
+		String header = "id,type,name,status,description,start_time,duration_time,epic,\n";
 		try (Writer writer = new FileWriter(path)) {
 			writer.write(header);
 			for (Task task : getTasksList()) {
@@ -128,7 +141,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 			return manager;
 		}
 
-		int maxId = -1; // refactor
+		int maxId = -1; // refactor здесь и далее в матоде: установка id в менеджере
 		for (int line = 1; line < fileContents.length - 2; line++) {
 			Task task = FileStringConverter.taskFromString(fileContents[line]);
 			final int id = task.getId();// refactor
@@ -140,11 +153,12 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 				case TASK:
 					manager.tasks.put(id,task);
 					break;
-				case SUBTASK:
-					manager.subtasks.put(id,(Subtask) task);
-					break;
 				case EPIC:
 					manager.epictasks.put(id,(Epictask) task);
+					break;
+				case SUBTASK:
+					manager.subtasks.put(id,(Subtask) task);
+					manager.epictasks.get(((Subtask) task).getEpicTaskId()).addSubtask((Subtask) task);
 					break;
 			}
 		}

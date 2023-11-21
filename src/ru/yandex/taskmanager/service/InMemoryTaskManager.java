@@ -3,9 +3,9 @@ package ru.yandex.taskmanager.service;
 import ru.yandex.taskmanager.model.*;
 import ru.yandex.taskmanager.util.Managers;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
 	protected int taskId = 0;
@@ -13,6 +13,21 @@ public class InMemoryTaskManager implements TaskManager {
 	protected final Map<Integer, Epictask> epictasks = new HashMap<>();
 	protected final Map<Integer, Subtask> subtasks = new HashMap<>();
 	private final HistoryManager historyManager = Managers.getDefaultHistory();
+
+	private final TreeSet<Task> taskSortedByStartTime = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+
+	protected HistoryManager getHistoryManager() {
+		return historyManager;
+	}
+
+	public TreeSet<Task> getTaskSortedByStartTime() {
+		return new TreeSet<>(taskSortedByStartTime);
+	}
+
+	@Override
+	public List<Task> getHistory() {
+		return historyManager.getHistory();
+	}
 
 	@Override
 	public List<Task> getTasksList() {
@@ -70,33 +85,37 @@ public class InMemoryTaskManager implements TaskManager {
 	}
 
 	@Override
-	public Epictask getEpictaskById(int taskId) {
-		return (Epictask) getTask(taskId, epictasks);
+	public Epictask getEpictaskById(int epictaskId) {
+		return (Epictask) getTask(epictaskId, epictasks);
 	}
 
 	@Override
-	public Subtask getSubtaskById(int taskId) {
-		return (Subtask) getTask(taskId, subtasks);
+	public Subtask getSubtaskById(int subtaskId) {
+		return (Subtask) getTask(subtaskId, subtasks);
 	}
 
 	@Override
 	public void createNewTask(Task task) {
 		task.setId(++taskId);
 		tasks.put(taskId, task);
+		taskSortedByStartTime.add(task);
 	}
 
 	@Override
-	public void createNewEpictask(Epictask task) {
-		task.setId(++taskId);
-		epictasks.put(taskId, task);
+	public void createNewEpictask(Epictask epictask) {
+		epictask.setId(++taskId);
+		epictasks.put(taskId, epictask);
 	}
 
 	@Override
 	public void createNewSubtask(Subtask subtask) {
 		subtask.setId(++taskId);
 		subtasks.put(taskId, subtask);
-		epictasks.get(subtask.getEpicTaskId()).addSubtask(subtask);
-		checkStatus(subtask.getEpicTaskId());
+		final int epicId = subtask.getEpicTaskId();
+		epictasks.get(epicId).addSubtask(subtask);
+		taskSortedByStartTime.add(subtask);
+		checkStatus(epicId);
+		calculateEpicStartEndTime(epicId);
 	}
 
 	@Override
@@ -115,6 +134,7 @@ public class InMemoryTaskManager implements TaskManager {
 			subtasks.get(task.getId()).setDescription(task.getDescription());
 			subtasks.get(task.getId()).setStatus(task.getStatus());
 			checkStatus(task.getEpicTaskId());
+			calculateEpicStartEndTime(task.getEpicTaskId());
 		}
 	}
 
@@ -133,13 +153,13 @@ public class InMemoryTaskManager implements TaskManager {
 	}
 
 	@Override
-	public void deleteEpictaskById(int taskId) {
-		Epictask epictask = epictasks.remove(taskId);
+	public void deleteEpictaskById(int epictaskId) {
+		Epictask epictask = epictasks.remove(epictaskId);
 		for (Subtask subtask : epictask.getSubtasks()) {
 			historyManager.remove(subtask.getId());
 			subtasks.remove(subtask.getId());
 		}
-		historyManager.remove(taskId);
+		historyManager.remove(epictaskId);
 	}
 
 	@Override
@@ -148,21 +168,13 @@ public class InMemoryTaskManager implements TaskManager {
 		int epicId = subtask.getEpicTaskId();
 		epictasks.get(epicId).deleteSubtask(taskId);
 		checkStatus(epicId);
+		calculateEpicStartEndTime(subtask.getEpicTaskId());
 		historyManager.remove(taskId);
 	}
 
 	@Override
 	public List<Subtask> getSubtasks(int taskId) {
 		return List.copyOf(epictasks.get(taskId).getSubtasks());
-	}
-
-	@Override
-	public List<Task> getHistory() {
-		return historyManager.getHistory();
-	}
-
-	protected HistoryManager getHistoryManager() {
-		return historyManager;
 	}
 
 	protected Task getTask(int taskId, Map<Integer, ? extends Task> taskList) {
@@ -173,11 +185,11 @@ public class InMemoryTaskManager implements TaskManager {
 		return task;
 	}
 
-	private void checkStatus(int taskId) {
-		int subtasksAmount = getSubtasks(taskId).size();
+	private void checkStatus(int epicId) {
+		int subtasksAmount = getSubtasks(epicId).size();
 		int countNew = 0;
 		int countDone = 0;
-		List<Subtask> subtasks = getSubtasks(taskId);
+		List<Subtask> subtasks = getSubtasks(epicId);
 
 		for (Subtask subtask : subtasks) {
 			if (subtask.getStatus().equals(Status.NEW)) {
@@ -188,16 +200,36 @@ public class InMemoryTaskManager implements TaskManager {
 		}
 
 		if (countNew == subtasksAmount) {
-			epictasks.get(taskId).setStatus(Status.NEW);
+			epictasks.get(epicId).setStatus(Status.NEW);
 			return;
 		}
 
 		if (countDone == subtasksAmount) {
-			epictasks.get(taskId).setStatus(Status.DONE);
+			epictasks.get(epicId).setStatus(Status.DONE);
 			return;
 		}
 
-		epictasks.get(taskId).setStatus(Status.IN_PROGRESS);
+		epictasks.get(epicId).setStatus(Status.IN_PROGRESS);
+	}
+
+	private void calculateEpicStartEndTime(int epicId) {
+		List<Subtask> subtasks = getSubtasks(epicId);
+
+		LocalDateTime startTime = subtasks.get(0).getStartTime();
+		LocalDateTime endTime = subtasks.get(0).getEndTime();
+		for (Subtask subtask : subtasks) {
+			if (subtask.getStartTime().isBefore(startTime)) {
+				startTime = subtask.getStartTime();
+			}
+
+			if (subtask.getEndTime().isAfter(endTime)) {
+				endTime = subtask.getEndTime();
+			}
+		}
+
+		epictasks.get(epicId).setStartTime(startTime);
+		epictasks.get(epicId).setEndTime(endTime);
+		epictasks.get(epicId).setDuration(Duration.between(startTime, endTime));
 	}
 }
 

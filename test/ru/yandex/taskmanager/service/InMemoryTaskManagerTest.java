@@ -2,182 +2,227 @@ package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import ru.yandex.taskmanager.model.Epictask;
-import ru.yandex.taskmanager.model.Subtask;
-import ru.yandex.taskmanager.model.Task;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-/*
-NullPointerException ex = assertThrows(
-				NullPointerException.class,
-				() -> memoryManager.getTaskById(0)
-		);
-*/
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
+
+	/**
+	 * TESTING GET TASKS LIST
+	 */
+
 	@Test
 	void tasksListShouldContainTaskAfterCreated() {
-		super.tasksListShouldContainTaskAfterCreated();
-		Assertions.assertArrayEquals(List.of(memoryManager.getTaskById(1)).toArray(), memoryManager.getTasksList().toArray());
-		Assertions.assertEquals(1, memoryManager.getTasksList().size());
+		super.tasksListShouldContainTaskAfterCreated(memoryManager);
 	}
 
 	@Test
 	void epictasksListShouldContainEpicTaskAfterCreated() {
-		super.epictasksListShouldContainEpicTaskAfterCreated();
-		Assertions.assertArrayEquals(List.of(memoryManager.getEpictaskById(1)).toArray(), memoryManager.getEpictasksList().toArray());
-		Assertions.assertEquals(1, memoryManager.getEpictasksList().size());
+		super.epictasksListShouldContainEpicTaskAfterCreated(memoryManager);
 	}
 
 	@Test
 	void subtasksListShouldContainSubTaskAfterCreated() {
-		super.subtasksListShouldContainSubTaskAfterCreated();
-		Assertions.assertArrayEquals(List.of(memoryManager.getSubtaskById(2)).toArray(), memoryManager.getSubtasksList().toArray());
-		Assertions.assertEquals(1, memoryManager.getSubtasksList().size());
+		super.subtasksListShouldContainSubTaskAfterCreated(memoryManager);
 	}
 
 	@Test
 	void tasksListsAreEmptyShouldReturnEmptyLists() {
-		Assertions.assertEquals(0, memoryManager.getTasksList().size());
-		Assertions.assertEquals(0, memoryManager.getEpictasksList().size());
-		Assertions.assertEquals(0, memoryManager.getSubtasksList().size());
+		super.tasksListsAreEmptyShouldReturnEmptyLists(memoryManager);
+	}
+
+	/**
+	 * TESTING CLEAR TASKS
+	 */
+
+	@Test
+	void clearTasksShouldOnlyRemoveTasks() {
+		super.clearTasksShouldOnlyRemoveTasks(memoryManager);
 	}
 
 	@Test
-	void taskManagerShouldBeEmptyAfterClearTasksList() {
-		super.taskManagerShouldBeEmptyAfterClearTasksList();
-		memoryManager.clearTasks();
-		Assertions.assertEquals(0, memoryManager.getTasksList().size());
+	void clearEpictasksShouldRemoveEpictasksAndSubtasks() {
+		super.clearEpictasksShouldRemoveEpictasksAndSubtasks(memoryManager);
 	}
 
 	@Test
-	void taskManagerShouldBeEmptyAfterClearEpicsList() {
-		super.taskManagerShouldBeEmptyAfterClearEpicsList();
-		memoryManager.clearEpictasks();
-		Assertions.assertEquals(0, memoryManager.getEpictasksList().size());
+	void clearSubtasksShouldOnlyRemoveSubtasks() {
+		super.clearSubtasksShouldOnlyRemoveSubtasks(memoryManager);
+	}
+
+	/**
+	 * TESTING getTaskById
+	 */
+
+	@Test
+	void getTaskByIdShouldReturnTaskWithThatId() {
+		super.getTaskByIdShouldReturnTaskWithThatId(memoryManager);
 	}
 
 	@Test
-	void taskManagerShouldHave1EpicAnd0SubAfterClearSubsList() {
-		super.taskManagerShouldHave1EpicAnd0SubAfterClearSubsList();
-		memoryManager.clearSubtasks();
-		Assertions.assertEquals(0, memoryManager.getSubtasksList().size());
-		Assertions.assertEquals(1, memoryManager.getEpictasksList().size());
+	void getEpictaskByIdShouldReturnEpictaskWithThatId() {
+		super.getEpictaskByIdShouldReturnEpictaskWithThatId(memoryManager);
 	}
 
 	@Test
-	void shouldWorkFineIfWasEmptyToBeginWith() {
-		memoryManager.clearTasks();
-		Assertions.assertEquals(0, memoryManager.getTasksList().size());
-		Assertions.assertEquals(0, memoryManager.getEpictasksList().size());
-		Assertions.assertEquals(0, memoryManager.getSubtasksList().size());
+	void getSubtaskByIdShouldReturnSubtaskWithThatId() {
+		super.getSubtaskByIdShouldReturnSubtaskWithThatId(memoryManager);
 	}
 
 	@Test
-	void getTaskByIdShouldReturnTask() {
-		super.getTaskByIdShouldReturnTask();
-		Assertions.assertEquals(memoryManager.getTaskById(1), memoryManager.getHistory().get(0));
+	void getTaskEpictaskSubtaskByIdShouldReturnNullIfThatListIsEmpty() {
+		super.getTaskEpictaskSubtaskByIdShouldReturnNullIfThatListIsEmpty(memoryManager);
 	}
 
-	@Test
-	void getEpicaskByIdShouldReturnEpictask() {
-		super.getEpicaskByIdShouldReturnEpictask();
-		Assertions.assertEquals(memoryManager.getEpictaskById(1), memoryManager.getHistory().get(0));
-	}
-
-	@Test
-	void getSubtaskByIdShouldReturnSubtask() {
-		super.getSubtaskByIdShouldReturnSubtask();
-		Assertions.assertEquals(memoryManager.getSubtaskById(2), memoryManager.getHistory().get(0));
-	}
-
-	@Test
-	void getTaskByIdShouldReturnNullIfListTaskIsEmpty() {
-		Assertions.assertNull(memoryManager.getTaskById(1));
-		Assertions.assertNull(memoryManager.getEpictaskById(1));
-		Assertions.assertNull(memoryManager.getSubtaskById(1));
-	}
+	/**
+	 * TESTING CREATE NEW TASK
+	 */
 
 	@Test
 	void createNewTaskShouldSetIdAndAddToTasksList() {
-		super.createNewTaskShouldSetIdAndAddToTasksList();
-		Assertions.assertEquals(1, memoryManager.getTaskById(1).getId());
+		super.createNewTaskShouldSetIdAndAddToTasksList(memoryManager);
 	}
 
 	@Test
-	void createNewEpicTaskShouldSetIdAndAddToEpicTasksList() {
-		super.createNewEpicTaskShouldSetIdAndAddToEpicTasksList();
-		Assertions.assertEquals(1, memoryManager.getEpictaskById(1).getId());
+	void createNewEpictaskShouldSetIdAndAddToEpictasksList() {
+		super.createNewEpictaskShouldSetIdAndAddToEpictasksList(memoryManager);
 	}
 
 	@Test
-	void createNewSubTaskShouldSetIdAndAddToEpicTasksList() {
-		super.createNewSubTaskShouldSetIdAndAddToEpicTasksList();
-		Assertions.assertEquals(2, memoryManager.getSubtaskById(2).getId());
+	void createNewSubtaskShouldSetIdAndAddToSubtasksList() {
+		super.createNewSubtaskShouldSetIdAndAddToSubtasksList(memoryManager);
 	}
+
+	/**
+	 * TESTING UPDATE TASK
+	 */
 
 	@Test
 	void taskShouldHaveNewDescriptionAfterUpdate() {
-		super.taskShouldHaveNewDescriptionAfterUpdate();
-		memoryManager.updateTask(memoryManager.getTaskById(1));
-		Assertions.assertEquals("after update", memoryManager.getTaskById(1).getDescription());
+		super.taskShouldHaveNewDescriptionAfterUpdate(memoryManager);
 	}
 
 	@Test
 	void epictaskShouldHaveNewDescriptionAfterUpdate() {
-		super.epictaskShouldHaveNewDescriptionAfterUpdate();
-		memoryManager.updateEpictask(memoryManager.getEpictaskById(1));
-		Assertions.assertEquals("after update", memoryManager.getEpictaskById(1).getDescription());
+		super.epictaskShouldHaveNewDescriptionAfterUpdate(memoryManager);
 	}
 
 	@Test
 	void subtaskShouldHaveNewDescriptionAfterUpdate() {
-		super.subtaskShouldHaveNewDescriptionAfterUpdate();
-		memoryManager.updateSubtask(memoryManager.getSubtaskById(2));
-		Assertions.assertEquals("after update", memoryManager.getSubtaskById(2).getDescription());
+		super.subtaskShouldHaveNewDescriptionAfterUpdate(memoryManager);
 	}
+
+	/**
+	 * TESTING DELETE TASK
+	 */
 
 	@Test
 	void taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1() {
-		super.taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1();
-		memoryManager.deleteTaskById(1);
-		Assertions.assertArrayEquals(List.of(memoryManager.getTaskById(2)).toArray(), memoryManager.getTasksList().toArray());
+		super.taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1(memoryManager);
 	}
 
 	@Test
-	void epictaskWithId1ShouldBeDeletedAfterDeleteEpictaskWithId1() {
-		super.epictaskWithId1ShouldBeDeletedAfterDeleteEpictaskWithId1();
-		memoryManager.deleteEpictaskById(1);
-		Assertions.assertArrayEquals(List.of(memoryManager.getEpictaskById(2)).toArray(), memoryManager.getEpictasksList().toArray());
+	void epictaskWithId3ShouldBeDeletedAfterDeleteEpictaskWithId3() {
+		super.epictaskWithId3ShouldBeDeletedAfterDeleteEpictaskWithId3(memoryManager);
 	}
 
 	@Test
-	void subtaskWithId2ShouldBeDeletedAfterDeleteSubtaskWithId2() {
-		super.subtaskWithId2ShouldBeDeletedAfterDeleteSubtaskWithId2();
-		memoryManager.deleteSubtaskById(2);
-		Assertions.assertArrayEquals(List.of(memoryManager.getSubtaskById(3)).toArray(), memoryManager.getSubtasksList().toArray());
+	void subtaskWithId5ShouldBeDeletedAfterDeleteSubtaskWithId5() {
+		super.subtaskWithId5ShouldBeDeletedAfterDeleteSubtaskWithId5(memoryManager);
 	}
+
+	/**
+	 * TESTING getSubtasks
+	 */
 
 	@Test
 	void shouldReturnListOfSubtasks() {
-		super.shouldReturnListOfSubtasks();
-		Collection<Subtask> subtasks = memoryManager.getEpictaskById(1).getSubtasks();
-		Assertions.assertArrayEquals(List.of(memoryManager.getSubtaskById(2), memoryManager.getSubtaskById(3)).toArray(), subtasks.toArray());
+		super.shouldReturnListOfSubtasks(memoryManager);
+	}
+
+	/**
+	 * TESTING EPIC STATUS
+	 */
+
+	@Test
+	void epicStatusIsNewWhenEpictaskIsCreated() {
+		super.epicStatusIsNewWhenEpictaskIsCreated(memoryManager);
 	}
 
 	@Test
-	void shouldReturnListOfTasksWithId1Id2Id3Id4() {
-		super.shouldReturnListOfTasksWithId1Id2Id3Id4();
-		List<Task> expected = new ArrayList<>();
-		expected.add(memoryManager.getTaskById(1));
-		expected.add(memoryManager.getTaskById(2));
-		expected.add(memoryManager.getEpictaskById(3));
-		expected.add(memoryManager.getSubtaskById(4));
-		Assertions.assertArrayEquals(expected.toArray(), memoryManager.getHistory().toArray());
+	void epicStatusIsNewWhenAllSubtasksAreNew() {
+		super.epicStatusIsNewWhenAllSubtasksAreNew(memoryManager);
+	}
+
+	@Test
+	void epicStatusIsDoneWhenAllSubtasksAreDone() {
+		super.epicStatusIsDoneWhenAllSubtasksAreDone(memoryManager);
+	}
+
+	@Test
+	void epicStatusIsInProgressWhenSubtasksAreNewAndDone() {
+		super.epicStatusIsInProgressWhenSubtasksAreNewAndDone(memoryManager);
+	}
+
+	@Test
+	void epicStatusIsInProgressWhenAllSubtasksAreInProgress() {
+		super.epicStatusIsInProgressWhenAllSubtasksAreInProgress(memoryManager);
+	}
+
+	/**
+	 * TESTING HISTORY
+	 */
+	@Test
+	void getTaskByIdShouldSaveTaskToHistory() {
+		super.getTaskByIdShouldSaveTaskToHistory(memoryManager);
+	}
+
+	@Test
+	void getEpictaskByIdShouldSaveEpictaskToHistory() {
+		super.getEpictaskByIdShouldSaveEpictaskToHistory(memoryManager);
+	}
+
+	@Test
+	void getSubTaskByIdShouldSaveTaskToHistory() {
+		super.getSubTaskByIdShouldSaveTaskToHistory(memoryManager);
+	}
+
+	@Test
+	void shouldReturnHistoryAsListOfTasksWithId1Id2Id3Id5() {
+		super.shouldReturnHistoryAsListOfTasksWithId1Id2Id3Id5(memoryManager);
+	}
+
+	@Test
+	void taskShouldGoToTheEndOfHistoryAfterGetTaskById() {
+		super.taskShouldGoToTheEndOfHistoryAfterGetTaskById(memoryManager);
+	}
+
+	/**
+	 * TESTING TIME AND DURATION
+	 */
+
+	@Test
+	void shouldCalculateTaskEndTime() {
+		super.shouldCalculateTaskEndTime(memoryManager);
+	}
+
+	@Test
+	void shouldCalculateEpictaskEndTime() {
+		super.shouldCalculateEpictaskEndTime(memoryManager);
+	}
+
+	@Test
+	void shouldCalculateSubtaskEndTime() {
+		super.shouldCalculateSubtaskEndTime(memoryManager);
+	}
+
+	/**
+	 * TESTING getStartTimeSort
+	 */
+
+	@Test
+	void shouldSortFromEarliestToLatestStartTime() {
+		super.shouldSortFromEarliestToLatestStartTime(memoryManager);
 	}
 }

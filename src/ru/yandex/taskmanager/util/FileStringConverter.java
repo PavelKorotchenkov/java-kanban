@@ -3,38 +3,20 @@ package ru.yandex.taskmanager.util;
 import ru.yandex.taskmanager.model.*;
 import ru.yandex.taskmanager.service.HistoryManager;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileStringConverter {
-	public static Task taskFromString(String value) {
-		String[] attribute = value.split(",");
-		Task task = null;
-
-		if (attribute[1].equals(TaskType.TASK.name())) {
-			task = new Task(attribute[2], attribute[4]);
-		}
-
-		if (attribute[1].equals(TaskType.EPIC.name())) {
-			task = new Epictask(attribute[2], attribute[4]);
-		}
-
-		if (attribute[1].equals(TaskType.SUBTASK.name())) {
-			task = new Subtask(attribute[2], attribute[4], Integer.parseInt(attribute[5]));
-		}
-
-		task.setId(Integer.parseInt(attribute[0]));
-		task.setStatus(Status.valueOf(attribute[3]));
-
-		return task;
-	}
-
 	public static String taskToString(Task task) {
 		String taskAsString = task.getId() + ","
 				+ task.getType() + ","
 				+ task.getName() + ","
 				+ task.getStatus() + ","
-				+ task.getDescription() + ",";
+				+ task.getDescription() + ","
+				+ task.getStartTime() + ","
+				+ task.getDuration() + ",";
 
 		//refactor
 		if (task.getType().equals(TaskType.SUBTASK)) {
@@ -45,14 +27,33 @@ public class FileStringConverter {
 		return taskAsString + "\n";
 	}
 
-	public static List<Integer> historyFromString(String value) {
-		List<Integer> history = new ArrayList<>();
-		String[] array = value.split(",");
-		for (String s : array) {
-			history.add(Integer.parseInt(s));
+	public static Task taskFromString(String value) {
+		String[] attribute = value.split(",");
+		Task task = null;
+
+		if (attribute[1].equals(TaskType.TASK.name())) {
+			task = new Task(attribute[2], attribute[4], LocalDateTime.parse(attribute[5]), Duration.parse(attribute[6]));
 		}
 
-		return history;
+		if (attribute[1].equals(TaskType.EPIC.name())) {
+			task = new Epictask(attribute[2], attribute[4]);
+
+			if (!attribute[5].equals("null")) {
+				Epictask epictask = (Epictask) task;
+				epictask.setStartTime(LocalDateTime.parse(attribute[5]));
+				epictask.setDuration(Duration.parse(attribute[6]));
+				epictask.setEndTime(epictask.getStartTime().plus(epictask.getDuration()));
+			}
+		}
+
+		if (attribute[1].equals(TaskType.SUBTASK.name())) {
+			task = new Subtask(attribute[2], attribute[4], LocalDateTime.parse(attribute[5]), Duration.parse(attribute[6]), Integer.parseInt(attribute[7]));
+		}
+
+		task.setId(Integer.parseInt(attribute[0]));
+		task.setStatus(Status.valueOf(attribute[3]));
+
+		return task;
 	}
 
 	public static String historyToString(HistoryManager manager) {
@@ -66,5 +67,15 @@ public class FileStringConverter {
 		}
 
 		return String.join(",", ids);
+	}
+
+	public static List<Integer> historyFromString(String value) {
+		List<Integer> history = new ArrayList<>();
+		String[] array = value.split(",");
+		for (String s : array) {
+			history.add(Integer.parseInt(s));
+		}
+
+		return history;
 	}
 }

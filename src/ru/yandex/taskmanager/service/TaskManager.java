@@ -4,6 +4,7 @@ import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Subtask;
 import ru.yandex.taskmanager.model.Task;
 import java.util.List;
+import java.util.TreeSet;
 
 public interface TaskManager {
 	List<Task> getTasksList();
@@ -33,4 +34,6 @@ public interface TaskManager {
 	List<Subtask> getSubtasks(int taskId);
 
 	List<Task> getHistory();
+
+	TreeSet<Task> getTaskSortedByStartTime();
 }

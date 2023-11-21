@@ -6,10 +6,12 @@ import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Status;
 import ru.yandex.taskmanager.model.Subtask;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 class EpicStatusTest {
 
 	TaskManager mtm = new InMemoryTaskManager();
-	TaskManager fbtm = new FileBackedTasksManager("./resources/saved.csv");
 
 	@Test
 	void epicStatusIsNewWhenEpictaskIsCreated() {
@@ -22,8 +24,8 @@ class EpicStatusTest {
 	void epicStatusIsNewWhenAllSubtasksAreNew() {
 		Epictask epictask = new Epictask("Epic", "1");
 		mtm.createNewEpictask(epictask);
-		Subtask subtask = new Subtask("Subtask1", "1.1", epictask.getId());
-		Subtask subtask2 = new Subtask("Subtask2", "1.2", epictask.getId());
+		Subtask subtask = new Subtask("Subtask1", "1.1", LocalDateTime.now(), Duration.ofMinutes(20), epictask.getId());
+		Subtask subtask2 = new Subtask("Subtask2", "1.2", LocalDateTime.now(), Duration.ofMinutes(20), epictask.getId());
 		mtm.createNewSubtask(subtask);
 		mtm.createNewSubtask(subtask2);
 		Assertions.assertEquals(Status.NEW, mtm.getEpictaskById(epictask.getId()).getStatus());
@@ -33,8 +35,8 @@ class EpicStatusTest {
 	void epicStatusIsDoneWhenAllSubtasksAreDone() {
 		Epictask epictask = new Epictask("Epic", "1");
 		mtm.createNewEpictask(epictask);
-		Subtask subtask = new Subtask("Subtask1", "1.1", epictask.getId());
-		Subtask subtask2 = new Subtask("Subtask2", "1.2", epictask.getId());
+		Subtask subtask = new Subtask("Subtask1", "1.1", LocalDateTime.now(), Duration.ofMinutes(20), epictask.getId());
+		Subtask subtask2 = new Subtask("Subtask2", "1.2", LocalDateTime.now(), Duration.ofMinutes(20), epictask.getId());
 		mtm.createNewSubtask(subtask);
 		mtm.createNewSubtask(subtask2);
 		subtask.setStatus(Status.DONE);
@@ -48,8 +50,8 @@ class EpicStatusTest {
 	void epicStatusIsInProgressWhenSubtasksAreNewAndDone() {
 		Epictask epictask = new Epictask("Epic", "1");
 		mtm.createNewEpictask(epictask);
-		Subtask subtask = new Subtask("Subtask1", "1.1", epictask.getId());
-		Subtask subtask2 = new Subtask("Subtask2", "1.2", epictask.getId());
+		Subtask subtask = new Subtask("Subtask1", "1.1", LocalDateTime.now(), Duration.ofMinutes(20), epictask.getId());
+		Subtask subtask2 = new Subtask("Subtask2", "1.2", LocalDateTime.now(), Duration.ofMinutes(20), epictask.getId());
 		mtm.createNewSubtask(subtask);
 		mtm.createNewSubtask(subtask2);
 		subtask.setStatus(Status.DONE);
@@ -58,11 +60,11 @@ class EpicStatusTest {
 	}
 
 	@Test
-	void epicStatusIsIsInProgressWhenAllSubtasksAreInProgress() {
+	void epicStatusIsInProgressWhenAllSubtasksAreInProgress() {
 		Epictask epictask = new Epictask("Epic", "1");
 		mtm.createNewEpictask(epictask);
-		Subtask subtask = new Subtask("Subtask1", "1.1", epictask.getId());
-		Subtask subtask2 = new Subtask("Subtask2", "1.2", epictask.getId());
+		Subtask subtask = new Subtask("Subtask1", "1.1", LocalDateTime.now(), Duration.ofMinutes(20), epictask.getId());
+		Subtask subtask2 = new Subtask("Subtask2", "1.2", LocalDateTime.now(), Duration.ofMinutes(20), epictask.getId());
 		mtm.createNewSubtask(subtask);
 		mtm.createNewSubtask(subtask2);
 		subtask.setStatus(Status.IN_PROGRESS);
