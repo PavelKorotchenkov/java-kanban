@@ -1,5 +1,6 @@
 package ru.yandex.taskmanager.service;
 
+import ru.yandex.taskmanager.exception.StartEndTimeConflictException;
 import ru.yandex.taskmanager.model.*;
 import ru.yandex.taskmanager.util.Managers;
 
@@ -14,14 +15,17 @@ public class InMemoryTaskManager implements TaskManager {
 	protected final Map<Integer, Subtask> subtasks = new HashMap<>();
 	private final HistoryManager historyManager = Managers.getDefaultHistory();
 
-	private final TreeSet<Task> taskSortedByStartTime = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+	protected final TreeSet<Task> taskSortedByStartTime = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+	protected final Set<Task> taskWithoutStartTime = new HashSet<>();
 
 	protected HistoryManager getHistoryManager() {
 		return historyManager;
 	}
 
-	public TreeSet<Task> getTaskSortedByStartTime() {
-		return new TreeSet<>(taskSortedByStartTime);
+	public List<Task> getPrioritizedTasks() {
+		List<Task> sortedTasks = new ArrayList<>(taskSortedByStartTime);
+		sortedTasks.addAll(taskSortedByStartTime.size(), taskWithoutStartTime);
+		return List.copyOf(sortedTasks);
 	}
 
 	@Override
@@ -49,6 +53,8 @@ public class InMemoryTaskManager implements TaskManager {
 		for (Integer id : tasks.keySet()) {
 			historyManager.remove(id);
 		}
+		taskSortedByStartTime.removeIf(task -> task.getType().equals(TaskType.TASK));
+		taskWithoutStartTime.removeIf(task -> task.getType().equals(TaskType.TASK));
 		tasks.clear();
 	}
 
@@ -75,7 +81,8 @@ public class InMemoryTaskManager implements TaskManager {
 			epictask.getSubtasks().clear();
 			epictask.setStatus(Status.NEW);
 		}
-
+		taskSortedByStartTime.removeIf(task -> task.getType().equals(TaskType.SUBTASK));
+		taskWithoutStartTime.removeIf(task -> task.getType().equals(TaskType.SUBTASK));
 		subtasks.clear();
 	}
 
@@ -98,9 +105,15 @@ public class InMemoryTaskManager implements TaskManager {
 	public void createNewTask(Task task) {
 		task.setId(++taskId);
 		tasks.put(taskId, task);
-		taskSortedByStartTime.add(task);
+		if (task.getStartTime() != null) {
+			timeValidation(task);
+			taskSortedByStartTime.add(task);
+		} else {
+			taskWithoutStartTime.add(task);
+		}
 	}
 
+	//java stream debugging plagin
 	@Override
 	public void createNewEpictask(Epictask epictask) {
 		epictask.setId(++taskId);
@@ -113,7 +126,12 @@ public class InMemoryTaskManager implements TaskManager {
 		subtasks.put(taskId, subtask);
 		final int epicId = subtask.getEpicTaskId();
 		epictasks.get(epicId).addSubtask(subtask);
-		taskSortedByStartTime.add(subtask);
+		if (subtask.getStartTime() != null) {
+			timeValidation(subtask);
+			taskSortedByStartTime.add(subtask);
+		} else {
+			taskWithoutStartTime.add(subtask);
+		}
 		checkStatus(epicId);
 		calculateEpicStartEndTime(epicId);
 	}
@@ -124,6 +142,15 @@ public class InMemoryTaskManager implements TaskManager {
 			tasks.get(task.getId()).setName(task.getName());
 			tasks.get(task.getId()).setDescription(task.getDescription());
 			tasks.get(task.getId()).setStatus(task.getStatus());
+			tasks.get(task.getId()).setStartTime(task.getStartTime());
+			tasks.get(task.getId()).setDuration(task.getDuration());
+			if (task.getStartTime() != null) {
+				taskSortedByStartTime.remove(task);
+				timeValidation(task);
+				taskSortedByStartTime.add(task);
+			} else {
+				taskWithoutStartTime.add(task);
+			}
 		}
 	}
 
@@ -133,6 +160,15 @@ public class InMemoryTaskManager implements TaskManager {
 			subtasks.get(task.getId()).setName(task.getName());
 			subtasks.get(task.getId()).setDescription(task.getDescription());
 			subtasks.get(task.getId()).setStatus(task.getStatus());
+			subtasks.get(task.getId()).setStartTime(task.getStartTime());
+			subtasks.get(task.getId()).setDuration(task.getDuration());
+			if (task.getStartTime() != null) {
+				taskSortedByStartTime.remove(task);
+				timeValidation(task);
+				taskSortedByStartTime.add(task);
+			} else {
+				taskWithoutStartTime.add(task);
+			}
 			checkStatus(task.getEpicTaskId());
 			calculateEpicStartEndTime(task.getEpicTaskId());
 		}
@@ -148,8 +184,10 @@ public class InMemoryTaskManager implements TaskManager {
 
 	@Override
 	public void deleteTaskById(int taskId) {
-		tasks.remove(taskId);
+		Task task = tasks.remove(taskId);
 		historyManager.remove(taskId);
+		taskSortedByStartTime.remove(task);
+		taskWithoutStartTime.remove(task);
 	}
 
 	@Override
@@ -170,6 +208,8 @@ public class InMemoryTaskManager implements TaskManager {
 		checkStatus(epicId);
 		calculateEpicStartEndTime(subtask.getEpicTaskId());
 		historyManager.remove(taskId);
+		taskSortedByStartTime.remove(subtask);
+		taskWithoutStartTime.remove(subtask);
 	}
 
 	@Override
@@ -230,6 +270,32 @@ public class InMemoryTaskManager implements TaskManager {
 		epictasks.get(epicId).setStartTime(startTime);
 		epictasks.get(epicId).setEndTime(endTime);
 		epictasks.get(epicId).setDuration(Duration.between(startTime, endTime));
+	}
+
+	private void timeValidation(Task task) {
+		LocalDateTime taskEndTime = task.getEndTime();
+		LocalDateTime taskStartTime = task.getStartTime();
+		for (Task anotherTask : taskSortedByStartTime) {
+			LocalDateTime anotherTaskEndTime = anotherTask.getEndTime();
+			LocalDateTime anotherTaskStartTime = anotherTask.getStartTime();
+			if (taskStartTime.isAfter(anotherTaskStartTime) && taskStartTime.isBefore(anotherTaskEndTime)) {
+				throw new StartEndTimeConflictException("Время начала задачи конфликтует с временем выполнения " +
+						"уже существующей задачи");
+			}
+
+			if (taskEndTime.isAfter(anotherTaskStartTime) && taskEndTime.isBefore(anotherTaskEndTime)) {
+				throw new StartEndTimeConflictException("Время окончания задачи конфликтует с временем выполнения " +
+						"уже существующей задачи");
+			}
+
+			if (anotherTaskStartTime.isAfter(taskStartTime) && anotherTaskStartTime.isBefore(taskEndTime)) {
+				throw new StartEndTimeConflictException("В это время уже есть другая задача");
+			}
+
+			if (anotherTaskEndTime.isAfter(taskStartTime) && anotherTaskEndTime.isBefore(taskEndTime)) {
+				throw new StartEndTimeConflictException("В это время уже есть другая задача");
+			}
+		}
 	}
 }
 

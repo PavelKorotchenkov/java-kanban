@@ -2,6 +2,7 @@ package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import ru.yandex.taskmanager.exception.StartEndTimeConflictException;
 import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Status;
 import ru.yandex.taskmanager.model.Subtask;
@@ -13,6 +14,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	File file = new File("./resources/test.csv");
@@ -280,6 +284,17 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	}
 
 	/**
+	 * TESTING trying to get epictask from subtask (getEpicTaskById method)
+	 */
+
+	@Test
+	void subtaskShouldHaveEpicId3() {
+		super.subtaskShouldHaveEpicId3(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(3, fileManager2.getSubtaskById(5).getEpicTaskId());
+	}
+
+	/**
 	 * TESTING HISTORY
 	 */
 	@Test
@@ -342,7 +357,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	void shouldCalculateEpictaskEndTime() {
 		super.shouldCalculateEpictaskEndTime(fileManager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
-		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(30));
+		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(220));
 		Assertions.assertEquals(endTime.getMinute(), fileManager2.getEpictaskById(3).getEndTime().getMinute());
 	}
 
@@ -350,7 +365,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	void shouldCalculateSubtaskEndTime() {
 		super.shouldCalculateSubtaskEndTime(fileManager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
-		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(20));
+		LocalDateTime endTime = LocalDateTime.now().plusMinutes(100);
 		Assertions.assertEquals(endTime.getMinute(), fileManager2.getSubtaskById(5).getEndTime().getMinute());
 	}
 
@@ -358,14 +373,72 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	 * TESTING getStartTimeSort
 	 */
 
-	//TODO to add serialization for sorted TreeSet
-
-	/*@Test
+	@Test
 	void shouldSortFromEarliestToLatestStartTime() {
 		super.shouldSortFromEarliestToLatestStartTime(fileManager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
-		List<Task> testList = new ArrayList<>(fileManager2.getTaskSortedByStartTime());
-		Assertions.assertEquals(7, testList.get(0).getId());
-		Assertions.assertEquals(8, testList.get(5).getId());
-	}*/
+		List<Task> testList = new ArrayList<>(fileManager2.getPrioritizedTasks());
+		Assertions.assertEquals(1, testList.get(0).getId());
+		Assertions.assertEquals(2, testList.get(1).getId());
+		Assertions.assertEquals(5, testList.get(2).getId());
+		Assertions.assertEquals(6, testList.get(3).getId());
+	}
+
+	@Test
+	void testSortByTimeWithNulls() {
+		super.testSortByTimeWithNulls(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		List<Task> testList = new ArrayList<>(fileManager2.getPrioritizedTasks());
+		Assertions.assertEquals(1, testList.get(0).getId());
+		Assertions.assertEquals(2, testList.get(1).getId());
+		Assertions.assertEquals(5, testList.get(2).getId());
+		Assertions.assertEquals(6, testList.get(3).getId());
+		Assertions.assertEquals(8, testList.get(4).getId());
+		Assertions.assertEquals(7, testList.get(5).getId());
+	}
+
+	/**
+	 * TESTING TIME CONFLICT
+	 */
+
+	@Test
+	void shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts() {
+		super.shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Task task = fileManager2.getTaskById(2);
+		task.setStartTime(LocalDateTime.now().plusMinutes(15));
+		final StartEndTimeConflictException exception = assertThrows(
+				StartEndTimeConflictException.class,
+				() -> fileManager2.updateTask(task));
+
+		assertEquals("Время начала задачи конфликтует с временем выполнения уже существующей задачи", exception.getMessage());
+	}
+
+	@Test
+	void shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts() {
+		super.shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Task task = fileManager2.getTaskById(1);
+		task.setDuration(Duration.ofMinutes(60));
+
+		final StartEndTimeConflictException exception = assertThrows(
+				StartEndTimeConflictException.class,
+				() -> fileManager2.updateTask(task));
+
+		assertEquals("Время окончания задачи конфликтует с временем выполнения уже существующей задачи", exception.getMessage());
+	}
+
+	@Test
+	void whenIncludesInTimeExistingTask() {
+		super.whenIncludesInTimeExistingTask(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Task task = new Task("Task3", "id7", LocalDateTime.now().plusMinutes(70), Duration.ofMinutes(40));
+		task.setDuration(Duration.ofMinutes(60));
+
+		final StartEndTimeConflictException exception = assertThrows(
+				StartEndTimeConflictException.class,
+				() -> fileManager2.createNewTask(task));
+
+		assertEquals("В это время уже есть другая задача", exception.getMessage());
+	}
 }

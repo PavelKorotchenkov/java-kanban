@@ -6,6 +6,8 @@ import ru.yandex.taskmanager.util.Managers;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 
 /**
@@ -49,7 +51,7 @@ public class Main {
 		System.out.println();*/
 
 		System.out.println("TESTING START TIME SORT BEGIN");
-		TreeSet<Task> testing = inMemoryTaskManager.getTaskSortedByStartTime();
+		List<Task> testing = inMemoryTaskManager.getPrioritizedTasks();
 		for (Task task : testing) {
 			System.out.println(task.getName() + " ---------- " + task.getStartTime());
 		}

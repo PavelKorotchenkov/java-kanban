@@ -152,6 +152,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 			switch (task.getType()) {
 				case TASK:
 					manager.tasks.put(id,task);
+					if (task.getStartTime() != null) {
+						manager.taskSortedByStartTime.add(task);
+					} else {
+						manager.taskWithoutStartTime.add(task);
+					}
 					break;
 				case EPIC:
 					manager.epictasks.put(id,(Epictask) task);
@@ -159,6 +164,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 				case SUBTASK:
 					manager.subtasks.put(id,(Subtask) task);
 					manager.epictasks.get(((Subtask) task).getEpicTaskId()).addSubtask((Subtask) task);
+					if (task.getStartTime() != null) {
+						manager.taskSortedByStartTime.add(task);
+					} else {
+						manager.taskWithoutStartTime.add(task);
+					}
 					break;
 			}
 		}

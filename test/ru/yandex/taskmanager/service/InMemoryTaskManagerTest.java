@@ -1,10 +1,6 @@
 package ru.yandex.taskmanager.service;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
 
 class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
@@ -171,6 +167,15 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	}
 
 	/**
+	 * TESTING trying to get epictask from subtask (getEpicTaskById method)
+	 */
+
+	@Test
+	void subtaskShouldHaveEpicId3() {
+		super.subtaskShouldHaveEpicId3(memoryManager);
+	}
+
+	/**
 	 * TESTING HISTORY
 	 */
 	@Test
@@ -224,5 +229,29 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	@Test
 	void shouldSortFromEarliestToLatestStartTime() {
 		super.shouldSortFromEarliestToLatestStartTime(memoryManager);
+	}
+
+	@Test
+	void testSortByTimeWithNulls() {
+		super.testSortByTimeWithNulls(memoryManager);
+	}
+
+	/**
+	 * TESTING TIME CONFLICT
+	 */
+
+	@Test
+	void shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts() {
+		super.shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts(memoryManager);
+	}
+
+	@Test
+	void shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts() {
+		super.shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts(memoryManager);
+	}
+
+	@Test
+	void whenIncludesInTimeExistingTask() {
+		super.whenIncludesInTimeExistingTask(memoryManager);
 	}
 }

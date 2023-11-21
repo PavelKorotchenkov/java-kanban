@@ -32,7 +32,12 @@ public class FileStringConverter {
 		Task task = null;
 
 		if (attribute[1].equals(TaskType.TASK.name())) {
-			task = new Task(attribute[2], attribute[4], LocalDateTime.parse(attribute[5]), Duration.parse(attribute[6]));
+			//task = new Task(attribute[2], attribute[4], LocalDateTime.parse(attribute[5]), Duration.parse(attribute[6]));
+			task = new Task(attribute[2], attribute[4]);
+			if (!attribute[5].equals("null")) {
+				task.setStartTime(LocalDateTime.parse(attribute[5]));
+				task.setDuration(Duration.parse(attribute[6]));
+			}
 		}
 
 		if (attribute[1].equals(TaskType.EPIC.name())) {
@@ -47,7 +52,12 @@ public class FileStringConverter {
 		}
 
 		if (attribute[1].equals(TaskType.SUBTASK.name())) {
-			task = new Subtask(attribute[2], attribute[4], LocalDateTime.parse(attribute[5]), Duration.parse(attribute[6]), Integer.parseInt(attribute[7]));
+			//task = new Subtask(attribute[2], attribute[4], LocalDateTime.parse(attribute[5]), Duration.parse(attribute[6]), Integer.parseInt(attribute[7]));
+			task = new Subtask(attribute[2], attribute[4], Integer.parseInt(attribute[7]));
+			if (!attribute[5].equals("null")) {
+				task.setStartTime(LocalDateTime.parse(attribute[5]));
+				task.setDuration(Duration.parse(attribute[6]));
+			}
 		}
 
 		task.setId(Integer.parseInt(attribute[0]));

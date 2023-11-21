@@ -1,6 +1,7 @@
 package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.*;
+import ru.yandex.taskmanager.exception.StartEndTimeConflictException;
 import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Status;
 import ru.yandex.taskmanager.model.Subtask;
@@ -11,18 +12,20 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.TreeSet;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 abstract class TaskManagerTest<T extends TaskManager> {
-	TaskManager memoryManager = new InMemoryTaskManager();
-	FileBackedTasksManager fileManager = new FileBackedTasksManager("./resources/test.csv");
+	TaskManager memoryManager;
+	FileBackedTasksManager fileManager;
 
 	/**
 	 * PREPARING TESTS
 	 */
 
-	/*@AfterEach
-	void clearAllListsAfterTests(){
+	@AfterEach
+	void clearAllListsAfterTests() {
 		memoryManager.clearTasks();
 		memoryManager.clearEpictasks();
 		memoryManager.clearSubtasks();
@@ -30,10 +33,10 @@ abstract class TaskManagerTest<T extends TaskManager> {
 		fileManager.clearTasks();
 		fileManager.clearEpictasks();
 		fileManager.clearSubtasks();
-	}*/
+	}
 
-	Task createTask(String name, String description) {
-		Task task = new Task(name, description, LocalDateTime.now(), Duration.ofMinutes(20));
+	Task createTask(String name, String description, LocalDateTime start, Duration duration) {
+		Task task = new Task(name, description, start, duration);
 		memoryManager.createNewTask(task);
 		fileManager.createNewTask(task);
 		return task;
@@ -46,21 +49,39 @@ abstract class TaskManagerTest<T extends TaskManager> {
 		return epictask;
 	}
 
-	Subtask createSubtask(String name, String description, int epictask) {
-		Subtask subtask = new Subtask(name, description, LocalDateTime.now(), Duration.ofMinutes(20), epictask);
+	Subtask createSubtask(String name, String description, LocalDateTime start, Duration duration, int epictask) {
+		Subtask subtask = new Subtask(name, description, start, duration, epictask);
 		memoryManager.createNewSubtask(subtask);
 		fileManager.createNewSubtask(subtask);
 		return subtask;
 	}
 
+	/**
+	 * Thread.sleep() использован для того, чтобы гарантировать разное startTime у задач,
+	 * у меня иногда задачи создавались в одну и ту же милисекунду, из-за чего не проходили тесты на сортировку по времени
+	 */
+
+	void sleep() {
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
 	@BeforeEach
 	void creatingTasks() {
-		createTask("Task", "id1");
-		createTask("Task2", "id2");
+		memoryManager = new InMemoryTaskManager();
+		fileManager = new FileBackedTasksManager("./resources/test.csv");
+		createTask("Task", "id1", LocalDateTime.now(), Duration.ofMinutes(20));
+		sleep();
+		createTask("Task2", "id2", LocalDateTime.now().plusMinutes(45), Duration.ofMinutes(20));
+		sleep();
 		Epictask epic = createEpictask("Epictask", "id3");
 		createEpictask("Epictask2", "id4");
-		createSubtask("Subtask", "id5", epic.getId());
-		createSubtask("Subtask2", "id6", epic.getId());
+		createSubtask("Subtask", "id5", LocalDateTime.now().plusMinutes(80), Duration.ofMinutes(20), epic.getId());
+		sleep();
+		createSubtask("Subtask2", "id6", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20), epic.getId());
 	}
 
 	/**
@@ -85,9 +106,9 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	void tasksListsAreEmptyShouldReturnEmptyLists(TaskManager manager) {
 		manager.clearTasks();
 		manager.clearEpictasks();
-		Assertions.assertEquals(0, manager.getTasksList().size());
-		Assertions.assertEquals(0, manager.getEpictasksList().size());
-		Assertions.assertEquals(0, manager.getSubtasksList().size());
+		assertEquals(0, manager.getTasksList().size());
+		assertEquals(0, manager.getEpictasksList().size());
+		assertEquals(0, manager.getSubtasksList().size());
 	}
 
 	/**
@@ -96,23 +117,23 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
 	void clearTasksShouldOnlyRemoveTasks(TaskManager manager) {
 		manager.clearTasks();
-		Assertions.assertEquals(0, manager.getTasksList().size());
-		Assertions.assertEquals(2, manager.getEpictasksList().size());
-		Assertions.assertEquals(2, manager.getSubtasksList().size());
+		assertEquals(0, manager.getTasksList().size());
+		assertEquals(2, manager.getEpictasksList().size());
+		assertEquals(2, manager.getSubtasksList().size());
 	}
 
 	void clearEpictasksShouldRemoveEpictasksAndSubtasks(TaskManager manager) {
 		manager.clearEpictasks();
-		Assertions.assertEquals(0, manager.getEpictasksList().size());
-		Assertions.assertEquals(0, manager.getSubtasksList().size());
-		Assertions.assertEquals(2, manager.getTasksList().size());
+		assertEquals(0, manager.getEpictasksList().size());
+		assertEquals(0, manager.getSubtasksList().size());
+		assertEquals(2, manager.getTasksList().size());
 	}
 
 	void clearSubtasksShouldOnlyRemoveSubtasks(TaskManager manager) {
 		manager.clearSubtasks();
-		Assertions.assertEquals(0, manager.getSubtasksList().size());
-		Assertions.assertEquals(2, manager.getEpictasksList().size());
-		Assertions.assertEquals(2, manager.getTasksList().size());
+		assertEquals(0, manager.getSubtasksList().size());
+		assertEquals(2, manager.getEpictasksList().size());
+		assertEquals(2, manager.getTasksList().size());
 	}
 
 	/**
@@ -120,19 +141,19 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void getTaskByIdShouldReturnTaskWithThatId(TaskManager manager) {
-		Assertions.assertEquals(1, manager.getTaskById(1).getId());
-		Assertions.assertEquals("Task", manager.getTaskById(1).getName());
+		assertEquals(1, manager.getTaskById(1).getId());
+		assertEquals("Task", manager.getTaskById(1).getName());
 	}
 
 	void getEpictaskByIdShouldReturnEpictaskWithThatId(TaskManager manager) {
-		Assertions.assertEquals(3, manager.getEpictaskById(3).getId());
-		Assertions.assertEquals("Epictask", manager.getEpictaskById(3).getName());
+		assertEquals(3, manager.getEpictaskById(3).getId());
+		assertEquals("Epictask", manager.getEpictaskById(3).getName());
 
 	}
 
 	void getSubtaskByIdShouldReturnSubtaskWithThatId(TaskManager manager) {
-		Assertions.assertEquals(5, manager.getSubtaskById(5).getId());
-		Assertions.assertEquals("Subtask", manager.getSubtaskById(5).getName());
+		assertEquals(5, manager.getSubtaskById(5).getId());
+		assertEquals("Subtask", manager.getSubtaskById(5).getName());
 
 	}
 
@@ -150,18 +171,18 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void createNewTaskShouldSetIdAndAddToTasksList(TaskManager manager) {
-		Assertions.assertEquals(1, manager.getTaskById(1).getId());
-		Assertions.assertEquals(2, manager.getTaskById(2).getId());
+		assertEquals(1, manager.getTaskById(1).getId());
+		assertEquals(2, manager.getTaskById(2).getId());
 	}
 
 	void createNewEpictaskShouldSetIdAndAddToEpictasksList(TaskManager manager) {
-		Assertions.assertEquals(3, manager.getEpictaskById(3).getId());
-		Assertions.assertEquals(4, manager.getEpictaskById(4).getId());
+		assertEquals(3, manager.getEpictaskById(3).getId());
+		assertEquals(4, manager.getEpictaskById(4).getId());
 	}
 
 	void createNewSubtaskShouldSetIdAndAddToSubtasksList(TaskManager manager) {
-		Assertions.assertEquals(5, manager.getSubtaskById(5).getId());
-		Assertions.assertEquals(6, manager.getSubtaskById(6).getId());
+		assertEquals(5, manager.getSubtaskById(5).getId());
+		assertEquals(6, manager.getSubtaskById(6).getId());
 	}
 
 	/**
@@ -171,19 +192,19 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	void taskShouldHaveNewDescriptionAfterUpdate(TaskManager manager) {
 		manager.getTaskById(1).setDescription("after update");
 		manager.updateTask(manager.getTaskById(1));
-		Assertions.assertEquals("after update", manager.getTaskById(1).getDescription());
+		assertEquals("after update", manager.getTaskById(1).getDescription());
 	}
 
 	void epictaskShouldHaveNewDescriptionAfterUpdate(TaskManager manager) {
 		manager.getEpictaskById(3).setDescription("after update");
 		manager.updateEpictask(manager.getEpictaskById(3));
-		Assertions.assertEquals("after update", manager.getEpictaskById(3).getDescription());
+		assertEquals("after update", manager.getEpictaskById(3).getDescription());
 	}
 
 	void subtaskShouldHaveNewDescriptionAfterUpdate(TaskManager manager) {
 		manager.getSubtaskById(5).setDescription("after update");
 		manager.updateSubtask(manager.getSubtaskById(5));
-		Assertions.assertEquals("after update", manager.getSubtaskById(5).getDescription());
+		assertEquals("after update", manager.getSubtaskById(5).getDescription());
 	}
 
 	/**
@@ -225,11 +246,11 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void epicStatusIsNewWhenEpictaskIsCreated(TaskManager manager) {
-		Assertions.assertEquals(Status.NEW, manager.getEpictaskById(4).getStatus());
+		assertEquals(Status.NEW, manager.getEpictaskById(4).getStatus());
 	}
 
 	void epicStatusIsNewWhenAllSubtasksAreNew(TaskManager manager) {
-		Assertions.assertEquals(Status.NEW, manager.getEpictaskById(3).getStatus());
+		assertEquals(Status.NEW, manager.getEpictaskById(3).getStatus());
 	}
 
 	void epicStatusIsDoneWhenAllSubtasksAreDone(TaskManager manager) {
@@ -237,13 +258,13 @@ abstract class TaskManagerTest<T extends TaskManager> {
 		manager.getSubtaskById(6).setStatus(Status.DONE);
 		manager.updateSubtask(manager.getSubtaskById(5));
 		manager.updateSubtask(manager.getSubtaskById(6));
-		Assertions.assertEquals(Status.DONE, manager.getEpictaskById(3).getStatus());
+		assertEquals(Status.DONE, manager.getEpictaskById(3).getStatus());
 	}
 
 	void epicStatusIsInProgressWhenSubtasksAreNewAndDone(TaskManager manager) {
 		manager.getSubtaskById(6).setStatus(Status.DONE);
 		manager.updateSubtask(manager.getSubtaskById(6));
-		Assertions.assertEquals(Status.IN_PROGRESS, manager.getEpictaskById(3).getStatus());
+		assertEquals(Status.IN_PROGRESS, manager.getEpictaskById(3).getStatus());
 	}
 
 	void epicStatusIsInProgressWhenAllSubtasksAreInProgress(TaskManager manager) {
@@ -251,15 +272,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
 		manager.getSubtaskById(6).setStatus(Status.IN_PROGRESS);
 		manager.updateSubtask(manager.getSubtaskById(5));
 		manager.updateSubtask(manager.getSubtaskById(6));
-		Assertions.assertEquals(Status.IN_PROGRESS, manager.getEpictaskById(3).getStatus());
+		assertEquals(Status.IN_PROGRESS, manager.getEpictaskById(3).getStatus());
 	}
 
 	/**
-	 * TESTING trying to get epictask from subtask (getEpicTaskId method)
+	 * TESTING trying to get epictask from subtask (getEpicTaskById method)
 	 */
 
 	void subtaskShouldHaveEpicId3(TaskManager manager) {
-		Assertions.assertEquals(3, manager.getSubtaskById(5).getEpicTaskId());
+		assertEquals(3, manager.getSubtaskById(5).getEpicTaskId());
 	}
 
 	/**
@@ -267,15 +288,15 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void getTaskByIdShouldSaveTaskToHistory(TaskManager manager) {
-		Assertions.assertEquals(manager.getTaskById(1), manager.getHistory().get(0));
+		assertEquals(manager.getTaskById(1), manager.getHistory().get(0));
 	}
 
 	void getEpictaskByIdShouldSaveEpictaskToHistory(TaskManager manager) {
-		Assertions.assertEquals(manager.getEpictaskById(3), manager.getHistory().get(0));
+		assertEquals(manager.getEpictaskById(3), manager.getHistory().get(0));
 	}
 
 	void getSubTaskByIdShouldSaveTaskToHistory(TaskManager manager) {
-		Assertions.assertEquals(manager.getSubtaskById(5), manager.getHistory().get(0));
+		assertEquals(manager.getSubtaskById(5), manager.getHistory().get(0));
 	}
 
 	void shouldReturnHistoryAsListOfTasksWithId1Id2Id3Id5(TaskManager manager) {
@@ -301,19 +322,19 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
 	void shouldCalculateTaskEndTime(TaskManager manager) {
 		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(20));
-		Assertions.assertEquals(endTime.getMinute(), manager.getTaskById(1).getEndTime().getMinute());
+		assertEquals(endTime.getMinute(), manager.getTaskById(1).getEndTime().getMinute());
 	}
 
 	void shouldCalculateEpictaskEndTime(TaskManager manager) {
-		Subtask subtask = new Subtask("Subtask", "for time check", LocalDateTime.now(), Duration.ofMinutes(30), manager.getEpictaskById(3).getId());
+		Subtask subtask = new Subtask("Subtask", "for time check", LocalDateTime.now().plusMinutes(200), Duration.ofMinutes(20), manager.getEpictaskById(3).getId());
 		manager.createNewSubtask(subtask);
-		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(30));
-		Assertions.assertEquals(endTime.getMinute(), manager.getEpictaskById(3).getEndTime().getMinute());
+		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(220));
+		assertEquals(endTime.getMinute(), manager.getEpictaskById(3).getEndTime().getMinute());
 	}
 
 	void shouldCalculateSubtaskEndTime(TaskManager manager) {
-		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(20));
-		Assertions.assertEquals(endTime.getMinute(), manager.getSubtaskById(5).getEndTime().getMinute());
+		LocalDateTime endTime = LocalDateTime.now().plusMinutes(100);
+		assertEquals(endTime.getMinute(), manager.getSubtaskById(5).getEndTime().getMinute());
 	}
 
 	/**
@@ -321,12 +342,62 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void shouldSortFromEarliestToLatestStartTime(TaskManager manager) {
-		Task taskTime1 = new Task("test task 1", "should be 1st", LocalDateTime.now().minusMinutes(60), Duration.ofMinutes(20));
+		List<Task> testList = new ArrayList<>(manager.getPrioritizedTasks());
+
+		assertEquals(1, testList.get(0).getId());
+		assertEquals(2, testList.get(1).getId());
+		assertEquals(5, testList.get(2).getId());
+		assertEquals(6, testList.get(3).getId());
+	}
+
+	void testSortByTimeWithNulls(TaskManager manager) {
+		Task taskTime1 = new Task("test task 1", "time = null");
 		manager.createNewTask(taskTime1);
-		Task taskTime2 = new Task("test task 2", "should be last", LocalDateTime.now().plusDays(3), Duration.ofMinutes(20));
+		Task taskTime2 = new Task("test task 2", "time = +3 days", LocalDateTime.now().plusDays(3), Duration.ofMinutes(20));
 		manager.createNewTask(taskTime2);
-		List<Task> testList = new ArrayList<>(manager.getTaskSortedByStartTime());
-		Assertions.assertEquals(7, testList.get(0).getId());
-		Assertions.assertEquals(8, testList.get(5).getId());
+		List<Task> testList = new ArrayList<>(manager.getPrioritizedTasks());
+
+		assertEquals(1, testList.get(0).getId());
+		assertEquals(2, testList.get(1).getId());
+		assertEquals(5, testList.get(2).getId());
+		assertEquals(6, testList.get(3).getId());
+		assertEquals(8, testList.get(4).getId());
+		assertEquals(7, testList.get(5).getId());
+	}
+
+	/**
+	 * TESTING TIME CONFLICT
+	 */
+
+	void shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts(TaskManager manager) {
+		Task task = manager.getTaskById(2);
+		task.setStartTime(LocalDateTime.now().plusMinutes(15));
+
+		final StartEndTimeConflictException exception = assertThrows(
+				StartEndTimeConflictException.class,
+				() -> manager.updateTask(task));
+
+		assertEquals("Время начала задачи конфликтует с временем выполнения уже существующей задачи", exception.getMessage());
+	}
+
+	void shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts(TaskManager manager) {
+		Task task = manager.getTaskById(1);
+		task.setDuration(Duration.ofMinutes(60));
+
+		final StartEndTimeConflictException exception = assertThrows(
+				StartEndTimeConflictException.class,
+				() -> manager.updateTask(task));
+
+		assertEquals("Время окончания задачи конфликтует с временем выполнения уже существующей задачи", exception.getMessage());
+	}
+	void whenIncludesInTimeExistingTask(TaskManager manager) {
+		Task task = new Task("Task3", "id7", LocalDateTime.now().plusMinutes(70), Duration.ofMinutes(40));
+		task.setDuration(Duration.ofMinutes(60));
+
+		final StartEndTimeConflictException exception = assertThrows(
+				StartEndTimeConflictException.class,
+				() -> manager.createNewTask(task));
+
+		assertEquals("В это время уже есть другая задача", exception.getMessage());
 	}
 }
