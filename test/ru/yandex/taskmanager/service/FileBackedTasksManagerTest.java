@@ -284,7 +284,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	}
 
 	/**
-	 * TESTING trying to get epictask from subtask (getEpicTaskById method)
+	 * TESTING trying to get epictask from subtask (getEpicTaskById)
 	 */
 
 	@Test
@@ -370,7 +370,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	}
 
 	/**
-	 * TESTING getStartTimeSort
+	 * TESTING time sorting
 	 */
 
 	@Test

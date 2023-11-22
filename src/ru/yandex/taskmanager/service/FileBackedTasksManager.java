@@ -141,7 +141,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 			return manager;
 		}
 
-		int maxId = -1; // refactor здесь и далее в матоде: установка id в менеджере
+		int maxId = -1; // refactor здесь и далее в матоде: установка max id в менеджере
 		for (int line = 1; line < fileContents.length - 2; line++) {
 			Task task = FileStringConverter.taskFromString(fileContents[line]);
 			final int id = task.getId();// refactor

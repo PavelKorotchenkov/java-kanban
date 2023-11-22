@@ -57,7 +57,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	}
 
 	/**
-	 * Thread.sleep() использован для того, чтобы гарантировать разное startTime у задач,
+	 * Thread.sleep() использован для того, чтобы гарантировать разное startTime у задач, т.к. создание через now() происходит,
 	 * у меня иногда задачи создавались в одну и ту же милисекунду, из-за чего не проходили тесты на сортировку по времени
 	 */
 
@@ -276,7 +276,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	}
 
 	/**
-	 * TESTING trying to get epictask from subtask (getEpicTaskById method)
+	 * TESTING getting epictask from subtask (getEpicTaskById)
 	 */
 
 	void subtaskShouldHaveEpicId3(TaskManager manager) {
@@ -338,7 +338,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	}
 
 	/**
-	 * TESTING getStartTimeSort
+	 * TESTING time sorting
 	 */
 
 	void shouldSortFromEarliestToLatestStartTime(TaskManager manager) {

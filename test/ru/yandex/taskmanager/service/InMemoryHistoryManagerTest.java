@@ -20,6 +20,7 @@ class InMemoryHistoryManagerTest {
 		final List<Task> history = historyManager.getHistory();
 		Assertions.assertNotNull(history);
 		Assertions.assertEquals(1, history.size());
+		Assertions.assertEquals(1, history.get(0).getId());
 	}
 
 	@Test
@@ -34,6 +35,8 @@ class InMemoryHistoryManagerTest {
 		final List<Task> history = historyManager.getHistory();
 		Assertions.assertNotNull(history);
 		Assertions.assertEquals(2, history.size());
+		Assertions.assertEquals(1, history.get(0).getId());
+		Assertions.assertEquals(2, history.get(1).getId());
 	}
 
 	@Test
@@ -53,6 +56,8 @@ class InMemoryHistoryManagerTest {
 		final List<Task> history = historyManager.getHistory();
 		Assertions.assertNotNull(history);
 		Assertions.assertEquals(1, history.size());
+		Assertions.assertEquals(1, history.get(0).getId());
+
 	}
 
 	@Test
@@ -68,6 +73,9 @@ class InMemoryHistoryManagerTest {
 		final List<Task> history = historyManager.getHistory();
 		Assertions.assertNotNull(history);
 		Assertions.assertArrayEquals(List.of(task2, task).toArray(), history.toArray());
+		Assertions.assertEquals(2, history.get(0).getId());
+		Assertions.assertEquals(1, history.get(1).getId());
+
 	}
 
 	@Test
