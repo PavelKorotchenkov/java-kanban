@@ -268,13 +268,33 @@ public class InMemoryTaskManager implements TaskManager {
 			}
 			LocalDateTime anotherTaskEndTime = anotherTask.getEndTime();
 			LocalDateTime anotherTaskStartTime = anotherTask.getStartTime();
-
+			/**
+			 * Влад, привет! Спасбио за ревью)
+			 * Второй раз случайно с телефона отправил, пытался код посмотреть с комментариями, сорри, там баг какой-то - не видно ни кода, ни комментов
+			 * По поводу реализации проверки, второй continue сама IDEA подсказывает убрать, вернул.
+			 * А насчет break - может я что-то упускаю, но я не понимаю, зачем в первом условии continue. У нас же список отсортирован по старту задач,
+			 * т.е. если мы нашли задачу, которая начинается позже, чем заканчивается новая задача, понятно, что
+			 * у всех остальных по умолчанию старт тайм будет позже.
+			 * (Например, есть список задач: 10:00-11:00, 11:00-12:00, 12:30-13:30. Если мы попытаемся создать задачу, 9:00-9:30,
+			 * достаточно будет сверить ее с первой задачей в списке, чтобы понять, что она удовлетворяет условию,
+			 * т.к. все остальные задачи начинаются позже первой, а значит, гарантированно позже окончания нашей новой задачи.
+			 * Так что можно, конечно, использовать continue, но в данном случае это кажется излишним.
+			 * */
 			if (taskEndTime.isBefore(anotherTaskStartTime) || taskEndTime.equals(anotherTaskStartTime)) {
-				break;
+				continue;
 			} else if (anotherTaskEndTime.isBefore(taskStartTime) || anotherTaskEndTime.equals(taskStartTime)) {
+				continue;
 			} else {
 				throw new StartEndTimeConflictException("В это время уже есть другая задача.");
 			}
+
+			/*if (taskEndTime.isBefore(anotherTaskStartTime) || taskEndTime.equals(anotherTaskStartTime)) {
+				break;
+			} else if (anotherTaskEndTime.isBefore(taskStartTime) || anotherTaskEndTime.equals(taskStartTime)) {
+				continue;
+			} else {
+				throw new StartEndTimeConflictException("В это время уже есть другая задача.");
+			}*/
 		}
 	}
 }
