@@ -11,6 +11,7 @@ import ru.yandex.taskmanager.model.Task;
 import java.io.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +42,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
 
-		Assertions.assertEquals(fileManager.taskId, fileManager2.taskId);
+		Assertions.assertEquals(6, fileManager2.taskId);
 		Assertions.assertArrayEquals(fileManager.getTasksList().toArray(), fileManager2.getTasksList().toArray());
 		Assertions.assertArrayEquals(fileManager.getEpictasksList().toArray(), fileManager2.getEpictasksList().toArray());
 		Assertions.assertArrayEquals(fileManager.getSubtasksList().toArray(), fileManager2.getSubtasksList().toArray());
@@ -349,24 +350,29 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	void shouldCalculateTaskEndTime() {
 		super.shouldCalculateTaskEndTime(fileManager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
-		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(20));
-		Assertions.assertEquals(endTime.getMinute(), fileManager2.getTaskById(1).getEndTime().getMinute());
+		assertEquals(fileManager2.getTaskById(1).getStartTime().plusMinutes(20), fileManager2.getTaskById(1).getEndTime());
+	}
+
+	@Test
+	void shouldCalculateEpictaskStartTime() {
+		super.shouldCalculateEpictaskStartTime(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		Assertions.assertEquals(fileManager2.getSubtaskById(5).getStartTime(), fileManager2.getEpictaskById(3).getStartTime());
 	}
 
 	@Test
 	void shouldCalculateEpictaskEndTime() {
 		super.shouldCalculateEpictaskEndTime(fileManager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
-		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(220));
-		Assertions.assertEquals(endTime.getMinute(), fileManager2.getEpictaskById(3).getEndTime().getMinute());
+		assertEquals(fileManager2.getSubtaskById(6).getEndTime(), fileManager2.getEpictaskById(3).getEndTime());
 	}
 
 	@Test
 	void shouldCalculateSubtaskEndTime() {
 		super.shouldCalculateSubtaskEndTime(fileManager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
-		LocalDateTime endTime = LocalDateTime.now().plusMinutes(100);
-		Assertions.assertEquals(endTime.getMinute(), fileManager2.getSubtaskById(5).getEndTime().getMinute());
+		assertEquals(fileManager2.getSubtaskById(5).getStartTime().plusMinutes(20),
+				fileManager2.getSubtaskById(5).getEndTime());
 	}
 
 	/**
@@ -411,7 +417,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 				StartEndTimeConflictException.class,
 				() -> fileManager2.updateTask(task));
 
-		assertEquals("Время начала задачи конфликтует с временем выполнения уже существующей задачи", exception.getMessage());
+		assertEquals("В это время уже есть другая задача.", exception.getMessage());
 	}
 
 	@Test
@@ -425,7 +431,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 				StartEndTimeConflictException.class,
 				() -> fileManager2.updateTask(task));
 
-		assertEquals("Время окончания задачи конфликтует с временем выполнения уже существующей задачи", exception.getMessage());
+		assertEquals("В это время уже есть другая задача.", exception.getMessage());
 	}
 
 	@Test
@@ -433,12 +439,26 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 		super.whenIncludesInTimeExistingTask(fileManager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
 		Task task = new Task("Task3", "id7", LocalDateTime.now().plusMinutes(70), Duration.ofMinutes(40));
-		task.setDuration(Duration.ofMinutes(60));
 
 		final StartEndTimeConflictException exception = assertThrows(
 				StartEndTimeConflictException.class,
 				() -> fileManager2.createNewTask(task));
 
-		assertEquals("В это время уже есть другая задача", exception.getMessage());
+		assertEquals("В это время уже есть другая задача.", exception.getMessage());
+	}
+
+	@Test
+	void whenTaskStartTimeEqualsExistingTaskEndTime() {
+		super.whenTaskStartTimeEqualsExistingTaskEndTime(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		assertEquals(fileManager2.getSubtaskById(6).getEndTime(), fileManager2.getTaskById(7).getStartTime());
+	}
+
+	@Test
+	void whenTaskEndTimeEqualsExistingTaskStartTime(){
+		super.whenTaskEndTimeEqualsExistingTaskStartTime(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		assertEquals(fileManager2.getSubtaskById(6).getStartTime().truncatedTo(ChronoUnit.SECONDS),
+				fileManager2.getTaskById(7).getEndTime());
 	}
 }

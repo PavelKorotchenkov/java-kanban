@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class Main {
 	public static void main(String[] args) {
-		TaskManager inMemoryTaskManager = Managers.getDefault();
+		/*TaskManager inMemoryTaskManager = Managers.getDefault();
 
 		Task task1 = new Task("Задача №1", "Легкая", LocalDateTime.now(), Duration.ofMinutes(20));
 		inMemoryTaskManager.createNewTask(task1);
@@ -41,6 +41,6 @@ public class Main {
 			System.out.println(prioTask);
 			System.out.println("Start time: " + prioTask.getStartTime());
 			System.out.println("Duration: " + prioTask.getDuration());
-		}
+		}*/
 	}
 }

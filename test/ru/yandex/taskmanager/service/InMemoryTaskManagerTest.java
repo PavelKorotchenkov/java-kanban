@@ -213,6 +213,11 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	}
 
 	@Test
+	void shouldCalculateEpictaskStartTime() {
+		super.shouldCalculateEpictaskStartTime(memoryManager);
+	}
+
+	@Test
 	void shouldCalculateEpictaskEndTime() {
 		super.shouldCalculateEpictaskEndTime(memoryManager);
 	}
@@ -253,5 +258,15 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	@Test
 	void whenIncludesInTimeExistingTask() {
 		super.whenIncludesInTimeExistingTask(memoryManager);
+	}
+
+	@Test
+	void whenTaskStartTimeEqualsExistingTaskEndTime() {
+		super.whenTaskStartTimeEqualsExistingTaskEndTime(memoryManager);
+	}
+
+	@Test
+	void whenTaskEndTimeEqualsExistingTaskStartTime(){
+		super.whenTaskEndTimeEqualsExistingTaskStartTime(memoryManager);
 	}
 }

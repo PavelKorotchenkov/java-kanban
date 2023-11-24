@@ -6,9 +6,11 @@ import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Status;
 import ru.yandex.taskmanager.model.Subtask;
 import ru.yandex.taskmanager.model.Task;
+import ru.yandex.taskmanager.util.Managers;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -18,21 +20,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 abstract class TaskManagerTest<T extends TaskManager> {
 	TaskManager memoryManager;
-	FileBackedTasksManager fileManager;
+	TaskManager fileManager;
 
 	/**
 	 * PREPARING TESTS
 	 */
 
-	@AfterEach
-	void clearAllListsAfterTests() {
-		memoryManager.clearTasks();
-		memoryManager.clearEpictasks();
-		memoryManager.clearSubtasks();
-
-		fileManager.clearTasks();
-		fileManager.clearEpictasks();
-		fileManager.clearSubtasks();
+	@BeforeEach
+	void creatingTasks() {
+		memoryManager = Managers.getInMemoryTaskManager();
+		fileManager = Managers.getDefault("./resources/test.csv");
+		createTask("Task", "id1", LocalDateTime.now(), Duration.ofMinutes(20));
+		sleep();
+		createTask("Task2", "id2", LocalDateTime.now().plusMinutes(45), Duration.ofMinutes(20));
+		sleep();
+		Epictask epic = createEpictask("Epictask", "id3");
+		createEpictask("Epictask2", "id4");
+		createSubtask("Subtask", "id5", LocalDateTime.now().plusMinutes(80), Duration.ofMinutes(20), epic.getId());
+		sleep();
+		createSubtask("Subtask2", "id6", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20), epic.getId());
 	}
 
 	Task createTask(String name, String description, LocalDateTime start, Duration duration) {
@@ -67,21 +73,6 @@ abstract class TaskManagerTest<T extends TaskManager> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-	}
-
-	@BeforeEach
-	void creatingTasks() {
-		memoryManager = new InMemoryTaskManager();
-		fileManager = new FileBackedTasksManager("./resources/test.csv");
-		createTask("Task", "id1", LocalDateTime.now(), Duration.ofMinutes(20));
-		sleep();
-		createTask("Task2", "id2", LocalDateTime.now().plusMinutes(45), Duration.ofMinutes(20));
-		sleep();
-		Epictask epic = createEpictask("Epictask", "id3");
-		createEpictask("Epictask2", "id4");
-		createSubtask("Subtask", "id5", LocalDateTime.now().plusMinutes(80), Duration.ofMinutes(20), epic.getId());
-		sleep();
-		createSubtask("Subtask2", "id6", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20), epic.getId());
 	}
 
 	/**
@@ -321,20 +312,20 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void shouldCalculateTaskEndTime(TaskManager manager) {
-		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(20));
-		assertEquals(endTime.getMinute(), manager.getTaskById(1).getEndTime().getMinute());
+		assertEquals(manager.getTaskById(1).getStartTime().plusMinutes(20), manager.getTaskById(1).getEndTime());
+	}
+
+	void shouldCalculateEpictaskStartTime(TaskManager manager) {
+		assertEquals(manager.getSubtaskById(5).getStartTime(), manager.getEpictaskById(3).getStartTime());
 	}
 
 	void shouldCalculateEpictaskEndTime(TaskManager manager) {
-		Subtask subtask = new Subtask("Subtask", "for time check", LocalDateTime.now().plusMinutes(200), Duration.ofMinutes(20), manager.getEpictaskById(3).getId());
-		manager.createNewSubtask(subtask);
-		LocalDateTime endTime = LocalDateTime.now().plus(Duration.ofMinutes(220));
-		assertEquals(endTime.getMinute(), manager.getEpictaskById(3).getEndTime().getMinute());
+		assertEquals(manager.getSubtaskById(6).getEndTime(), manager.getEpictaskById(3).getEndTime());
 	}
 
 	void shouldCalculateSubtaskEndTime(TaskManager manager) {
-		LocalDateTime endTime = LocalDateTime.now().plusMinutes(100);
-		assertEquals(endTime.getMinute(), manager.getSubtaskById(5).getEndTime().getMinute());
+		assertEquals(manager.getSubtaskById(5).getStartTime().plusMinutes(20),
+				manager.getSubtaskById(5).getEndTime());
 	}
 
 	/**
@@ -377,7 +368,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 				StartEndTimeConflictException.class,
 				() -> manager.updateTask(task));
 
-		assertEquals("Время начала задачи конфликтует с временем выполнения уже существующей задачи", exception.getMessage());
+		assertEquals("В это время уже есть другая задача.", exception.getMessage());
 	}
 
 	void shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts(TaskManager manager) {
@@ -388,16 +379,34 @@ abstract class TaskManagerTest<T extends TaskManager> {
 				StartEndTimeConflictException.class,
 				() -> manager.updateTask(task));
 
-		assertEquals("Время окончания задачи конфликтует с временем выполнения уже существующей задачи", exception.getMessage());
+		assertEquals("В это время уже есть другая задача.", exception.getMessage());
 	}
+
 	void whenIncludesInTimeExistingTask(TaskManager manager) {
 		Task task = new Task("Task3", "id7", LocalDateTime.now().plusMinutes(70), Duration.ofMinutes(40));
-		task.setDuration(Duration.ofMinutes(60));
 
 		final StartEndTimeConflictException exception = assertThrows(
 				StartEndTimeConflictException.class,
 				() -> manager.createNewTask(task));
 
-		assertEquals("В это время уже есть другая задача", exception.getMessage());
+		assertEquals("В это время уже есть другая задача.", exception.getMessage());
+	}
+
+	void whenTaskStartTimeEqualsExistingTaskEndTime(TaskManager manager) {
+		Task task = new Task("Task3", "id7", manager.getSubtaskById(6).getEndTime(), Duration.ofMinutes(20));
+		manager.createNewTask(task);
+		assertEquals(manager.getSubtaskById(6).getEndTime(), manager.getTaskById(7).getStartTime());
+	}
+
+	void whenTaskEndTimeEqualsExistingTaskStartTime(TaskManager manager) {
+		Task task = new Task("Task3", "id7",	manager.getSubtaskById(5).getEndTime()
+				.plusMinutes(10).truncatedTo(ChronoUnit.SECONDS), Duration.ofMinutes(10));
+		manager.createNewTask(task);
+		assertEquals(manager.getSubtaskById(6).getStartTime().truncatedTo(ChronoUnit.SECONDS),
+				manager.getTaskById(7).getEndTime());
 	}
 }
+
+// |____t1____|_________|____t2____|____________|____st5____|__________|____st6____|
+// |~~~~~~~~~~|_________|~~~~~~~~~~|____________|~~~~~~~~~~~|__________|~~~~~~~~~~~|
+// 0_________20_________45_________65___________80_________100________120_________140

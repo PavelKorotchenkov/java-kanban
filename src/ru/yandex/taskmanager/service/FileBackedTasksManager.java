@@ -17,7 +17,7 @@ import java.util.List;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
 
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		String path = "./resources/saved.csv";
 		TaskManager manager = Managers.getDefault();
 		Task task1 = new Task("Задача №1", "1", LocalDateTime.now(), Duration.ofMinutes(10));
@@ -93,7 +93,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
 		System.out.println("GET");
 		System.out.println(manager1.getTaskById(7));
-	}
+	}*/
 
 	private final String path;
 
@@ -126,6 +126,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 		}
 	}
 
+	//refactor
 	public static FileBackedTasksManager load(File file) {
 		FileBackedTasksManager manager = new FileBackedTasksManager(file.getAbsolutePath());
 		String string;
@@ -141,22 +142,18 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 			return manager;
 		}
 
-		int maxId = -1; // refactor здесь и далее в матоде: установка max id в менеджере
+		int maxId = -1;
 		for (int line = 1; line < fileContents.length - 2; line++) {
 			Task task = FileStringConverter.taskFromString(fileContents[line]);
-			final int id = task.getId();// refactor
-			if (task.getId() > maxId) {// refactor
+			final int id = task.getId();
+			if (task.getId() > maxId) {
 				maxId = task.getId();
 			}
 
 			switch (task.getType()) {
 				case TASK:
 					manager.tasks.put(id,task);
-					if (task.getStartTime() != null) {
-						manager.taskSortedByStartTime.add(task);
-					} else {
-						manager.taskWithoutStartTime.add(task);
-					}
+					manager.tasksSortedByStartTime.add(task);
 					break;
 				case EPIC:
 					manager.epictasks.put(id,(Epictask) task);
@@ -164,15 +161,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 				case SUBTASK:
 					manager.subtasks.put(id,(Subtask) task);
 					manager.epictasks.get(((Subtask) task).getEpicTaskId()).addSubtask((Subtask) task);
-					if (task.getStartTime() != null) {
-						manager.taskSortedByStartTime.add(task);
-					} else {
-						manager.taskWithoutStartTime.add(task);
-					}
+					manager.tasksSortedByStartTime.add(task);
 					break;
 			}
 		}
-		manager.taskId = maxId;  // refactor
+		manager.taskId = maxId;
 
 		if (fileContents[fileContents.length - 1].isBlank()) {
 			return manager;
