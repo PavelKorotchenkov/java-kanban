@@ -15,6 +15,11 @@ public class Epictask extends Task {
 		super(name, description);
 	}
 
+	public Epictask(Epictask epictask) {
+		super(epictask);
+		endTime = epictask.getEndTime();
+	}
+
 	public void setEndTime(LocalDateTime endTime) {
 		this.endTime = endTime;
 	}

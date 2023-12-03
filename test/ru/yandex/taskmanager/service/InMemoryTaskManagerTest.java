@@ -1,6 +1,12 @@
 package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.Test;
+import ru.yandex.taskmanager.model.Task;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
@@ -268,5 +274,10 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	@Test
 	void whenTaskEndTimeEqualsExistingTaskStartTime(){
 		super.whenTaskEndTimeEqualsExistingTaskStartTime(memoryManager);
+	}
+
+	@Test
+	void givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree() {
+		super.givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree(memoryManager);
 	}
 }

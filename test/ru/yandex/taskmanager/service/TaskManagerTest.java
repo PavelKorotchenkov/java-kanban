@@ -9,7 +9,9 @@ import ru.yandex.taskmanager.model.Task;
 import ru.yandex.taskmanager.util.Managers;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -181,20 +183,23 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void taskShouldHaveNewDescriptionAfterUpdate(TaskManager manager) {
-		manager.getTaskById(1).setDescription("after update");
-		manager.updateTask(manager.getTaskById(1));
+		Task updTask = new Task(manager.getTaskById(1));
+		updTask.setDescription("after update");
+		manager.updateTask(updTask);
 		assertEquals("after update", manager.getTaskById(1).getDescription());
 	}
 
 	void epictaskShouldHaveNewDescriptionAfterUpdate(TaskManager manager) {
-		manager.getEpictaskById(3).setDescription("after update");
-		manager.updateEpictask(manager.getEpictaskById(3));
+		Epictask updTask = new Epictask(manager.getEpictaskById(3));
+		updTask.setDescription("after update");
+		manager.updateEpictask(updTask);
 		assertEquals("after update", manager.getEpictaskById(3).getDescription());
 	}
 
 	void subtaskShouldHaveNewDescriptionAfterUpdate(TaskManager manager) {
-		manager.getSubtaskById(5).setDescription("after update");
-		manager.updateSubtask(manager.getSubtaskById(5));
+		Subtask updTask = new Subtask(manager.getSubtaskById(5));
+		updTask.setDescription("after update");
+		manager.updateSubtask(updTask);
 		assertEquals("after update", manager.getSubtaskById(5).getDescription());
 	}
 
@@ -361,12 +366,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts(TaskManager manager) {
-		Task task = manager.getTaskById(2);
-		task.setStartTime(LocalDateTime.now().plusMinutes(15));
+		Task updTask = new Task(manager.getTaskById(2));
+		updTask.setStartTime(LocalDateTime.now().plusMinutes(15));
 
 		final StartEndTimeConflictException exception = assertThrows(
 				StartEndTimeConflictException.class,
-				() -> manager.updateTask(task));
+				() -> manager.updateTask(updTask));
 
 		assertEquals("В это время уже есть другая задача.", exception.getMessage());
 	}
@@ -405,8 +410,17 @@ abstract class TaskManagerTest<T extends TaskManager> {
 		assertEquals(manager.getSubtaskById(6).getStartTime().truncatedTo(ChronoUnit.SECONDS),
 				manager.getTaskById(7).getEndTime());
 	}
+
+	void givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree(TaskManager manager) {
+		Task existingTask = manager.getTaskById(2);
+		existingTask.setStartTime(LocalDateTime.now().plusMinutes(60));
+		existingTask.setDuration(Duration.ofMinutes(10));
+		Task newTask = createTask("newTask", "id7", LocalDateTime.now().plusMinutes(40), Duration.ofMinutes(15));
+
+		assertEquals(7, manager.getTaskById(7).getId());
+	}
 }
 
 // |____t1____|_________|____t2____|____________|____st5____|__________|____st6____|
 // |~~~~~~~~~~|_________|~~~~~~~~~~|____________|~~~~~~~~~~~|__________|~~~~~~~~~~~|
-// 0_________20_________45_________65___________80_________100________120_________140
+// 0_________20_________45_________65___________80_________100________120_________140____120_________140

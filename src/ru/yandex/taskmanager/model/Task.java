@@ -2,7 +2,6 @@ package ru.yandex.taskmanager.model;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class Task {
@@ -27,6 +26,15 @@ public class Task {
 		this.status = Status.NEW;
 		this.startTime = startTime;
 		this.duration = duration;
+	}
+
+	public Task(Task task) {
+		id = task.getId();
+		name = task.getName();
+		description = task.getDescription();
+		status = task.getStatus();
+		startTime = task.getStartTime();
+		duration = task.getDuration();
 	}
 
 	public LocalDateTime getEndTime() {

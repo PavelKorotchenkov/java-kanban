@@ -130,14 +130,9 @@ public class InMemoryTaskManager implements TaskManager {
 	@Override
 	public void updateTask(Task task) {
 		if (tasks.containsKey(task.getId())) {
-			tasks.get(task.getId()).setName(task.getName());
-			tasks.get(task.getId()).setDescription(task.getDescription());
-			tasks.get(task.getId()).setStatus(task.getStatus());
-			tasks.get(task.getId()).setStartTime(task.getStartTime());
-			tasks.get(task.getId()).setDuration(task.getDuration());
-
-			tasksSortedByStartTime.remove(task);
 			timeValidation(task);
+			tasksSortedByStartTime.remove(task);
+			tasks.put(task.getId(), task);
 			tasksSortedByStartTime.add(task);
 		}
 	}
@@ -145,14 +140,10 @@ public class InMemoryTaskManager implements TaskManager {
 	@Override
 	public void updateSubtask(Subtask task) {
 		if (subtasks.containsKey(task.getId())) {
-			subtasks.get(task.getId()).setName(task.getName());
-			subtasks.get(task.getId()).setDescription(task.getDescription());
-			subtasks.get(task.getId()).setStatus(task.getStatus());
-			subtasks.get(task.getId()).setStartTime(task.getStartTime());
-			subtasks.get(task.getId()).setDuration(task.getDuration());
+			timeValidation(task);
 
 			tasksSortedByStartTime.remove(task);
-			timeValidation(task);
+			subtasks.put(task.getId(),task);
 			tasksSortedByStartTime.add(task);
 
 			checkStatus(task.getEpicTaskId());
@@ -163,8 +154,7 @@ public class InMemoryTaskManager implements TaskManager {
 	@Override
 	public void updateEpictask(Epictask task) {
 		if (epictasks.containsKey(task.getId())) {
-			epictasks.get(task.getId()).setName(task.getName());
-			epictasks.get(task.getId()).setDescription(task.getDescription());
+			epictasks.put(task.getId(), task);
 		}
 	}
 
@@ -266,20 +256,11 @@ public class InMemoryTaskManager implements TaskManager {
 			if (anotherTask.getStartTime() == null) {
 				continue;
 			}
+			if (anotherTask.getId() == task.getId()) {
+				continue;
+			}
 			LocalDateTime anotherTaskEndTime = anotherTask.getEndTime();
 			LocalDateTime anotherTaskStartTime = anotherTask.getStartTime();
-			/**
-			 * Влад, привет! Спасбио за ревью)
-			 * Второй раз случайно с телефона отправил, пытался код посмотреть с комментариями, сорри, там баг какой-то - не видно ни кода, ни комментов
-			 * По поводу реализации проверки, второй continue сама IDEA подсказывает убрать, вернул.
-			 * А насчет break - может я что-то упускаю, но я не понимаю, зачем в первом условии continue. У нас же список отсортирован по старту задач,
-			 * т.е. если мы нашли задачу, которая начинается позже, чем заканчивается новая задача, понятно, что
-			 * у всех остальных по умолчанию старт тайм будет позже.
-			 * (Например, есть список задач: 10:00-11:00, 11:00-12:00, 12:30-13:30. Если мы попытаемся создать задачу, 9:00-9:30,
-			 * достаточно будет сверить ее с первой задачей в списке, чтобы понять, что она удовлетворяет условию,
-			 * т.к. все остальные задачи начинаются позже первой, а значит, гарантированно позже окончания нашей новой задачи.
-			 * Так что можно, конечно, использовать continue, но в данном случае это кажется излишним.
-			 * */
 			if (taskEndTime.isBefore(anotherTaskStartTime) || taskEndTime.equals(anotherTaskStartTime)) {
 				continue;
 			} else if (anotherTaskEndTime.isBefore(taskStartTime) || anotherTaskEndTime.equals(taskStartTime)) {
@@ -298,6 +279,3 @@ public class InMemoryTaskManager implements TaskManager {
 		}
 	}
 }
-
-
-

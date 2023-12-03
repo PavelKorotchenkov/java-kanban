@@ -461,4 +461,12 @@ class FileBackedTasksManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 		assertEquals(fileManager2.getSubtaskById(6).getStartTime().truncatedTo(ChronoUnit.SECONDS),
 				fileManager2.getTaskById(7).getEndTime());
 	}
+
+	@Test
+	void givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree(){
+		super.givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree(fileManager);
+		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
+		assertEquals(7, fileManager2.getTaskById(7).getId());
+
+	}
 }
