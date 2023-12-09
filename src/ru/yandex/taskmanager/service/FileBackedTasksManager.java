@@ -4,7 +4,6 @@ import ru.yandex.taskmanager.exception.ManagerSaveException;
 import ru.yandex.taskmanager.model.*;
 import ru.yandex.taskmanager.util.FileStringConverter;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;

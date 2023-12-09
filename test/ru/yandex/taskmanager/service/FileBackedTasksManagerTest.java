@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager> {
-	//File file = new File("./resources/test.csv");
 	String file = "./resources/test.csv";
 
 	@BeforeEach

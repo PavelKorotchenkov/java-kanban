@@ -1,21 +1,16 @@
 package ru.yandex.taskmanager.service;
 
 import com.google.gson.*;
-import ru.yandex.taskmanager.api.KVServer;
 import ru.yandex.taskmanager.api.KVTaskClient;
 import ru.yandex.taskmanager.exception.ManagerSaveException;
 import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Subtask;
 import ru.yandex.taskmanager.model.Task;
-import ru.yandex.taskmanager.model.TaskType;
 import ru.yandex.taskmanager.util.FileStringConverter;
 import ru.yandex.taskmanager.util.LocalDateTimeAdapter;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 public class HttpTaskManager extends FileBackedTasksManager {
 	private final String URL;

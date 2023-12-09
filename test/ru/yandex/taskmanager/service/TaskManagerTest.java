@@ -1,15 +1,12 @@
 package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.*;
-import ru.yandex.taskmanager.api.KVServer;
 import ru.yandex.taskmanager.exception.StartEndTimeConflictException;
 import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Status;
 import ru.yandex.taskmanager.model.Subtask;
 import ru.yandex.taskmanager.model.Task;
-import ru.yandex.taskmanager.util.Managers;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -21,28 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 abstract class TaskManagerTest<T extends TaskManager> {
-	/*TaskManager memoryManager;
-	TaskManager manager;*/
 	T manager;
 
 	/**
 	 * PREPARING TESTS
 	 */
-
-	/*@BeforeEach
-	void creatingTasks() throws IOException, InterruptedException {
-		*//*memoryManager = Managers.getInMemoryTaskManager();
-		manager = Managers.getFileBackedTaskManager("./resources/test.csv");*//*
-		createTask("Task", "id1", LocalDateTime.now(), Duration.ofMinutes(20));
-		sleep();
-		createTask("Task2", "id2", LocalDateTime.now().plusMinutes(45), Duration.ofMinutes(20));
-		sleep();
-		Epictask epic = createEpictask("Epictask", "id3");
-		createEpictask("Epictask2", "id4");
-		createSubtask("Subtask", "id5", LocalDateTime.now().plusMinutes(80), Duration.ofMinutes(20), epic.getId());
-		sleep();
-		createSubtask("Subtask2", "id6", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20), epic.getId());
-	}*/
 
 	Task createTask(String name, String description, LocalDateTime start, Duration duration) {
 		Task task = new Task(name, description, start, duration);
