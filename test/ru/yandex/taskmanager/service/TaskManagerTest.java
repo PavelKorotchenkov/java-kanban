@@ -1,6 +1,7 @@
 package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.*;
+import ru.yandex.taskmanager.api.KVServer;
 import ru.yandex.taskmanager.exception.StartEndTimeConflictException;
 import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Status;
@@ -8,10 +9,9 @@ import ru.yandex.taskmanager.model.Subtask;
 import ru.yandex.taskmanager.model.Task;
 import ru.yandex.taskmanager.util.Managers;
 
+import java.io.IOException;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,17 +21,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 abstract class TaskManagerTest<T extends TaskManager> {
-	TaskManager memoryManager;
-	TaskManager fileManager;
+	/*TaskManager memoryManager;
+	TaskManager manager;*/
+	T manager;
 
 	/**
 	 * PREPARING TESTS
 	 */
 
-	@BeforeEach
-	void creatingTasks() {
-		memoryManager = Managers.getInMemoryTaskManager();
-		fileManager = Managers.getDefault("./resources/test.csv");
+	/*@BeforeEach
+	void creatingTasks() throws IOException, InterruptedException {
+		*//*memoryManager = Managers.getInMemoryTaskManager();
+		manager = Managers.getFileBackedTaskManager("./resources/test.csv");*//*
 		createTask("Task", "id1", LocalDateTime.now(), Duration.ofMinutes(20));
 		sleep();
 		createTask("Task2", "id2", LocalDateTime.now().plusMinutes(45), Duration.ofMinutes(20));
@@ -41,33 +42,26 @@ abstract class TaskManagerTest<T extends TaskManager> {
 		createSubtask("Subtask", "id5", LocalDateTime.now().plusMinutes(80), Duration.ofMinutes(20), epic.getId());
 		sleep();
 		createSubtask("Subtask2", "id6", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20), epic.getId());
-	}
+	}*/
 
 	Task createTask(String name, String description, LocalDateTime start, Duration duration) {
 		Task task = new Task(name, description, start, duration);
-		memoryManager.createNewTask(task);
-		fileManager.createNewTask(task);
+		manager.createNewTask(task);
+
 		return task;
 	}
 
 	Epictask createEpictask(String name, String description) {
 		Epictask epictask = new Epictask(name, description);
-		memoryManager.createNewEpictask(epictask);
-		fileManager.createNewEpictask(epictask);
+		manager.createNewEpictask(epictask);
 		return epictask;
 	}
 
 	Subtask createSubtask(String name, String description, LocalDateTime start, Duration duration, int epictask) {
 		Subtask subtask = new Subtask(name, description, start, duration, epictask);
-		memoryManager.createNewSubtask(subtask);
-		fileManager.createNewSubtask(subtask);
+		manager.createNewSubtask(subtask);
 		return subtask;
 	}
-
-	/**
-	 * Thread.sleep() использован для того, чтобы гарантировать разное startTime у задач, т.к. создание через now() происходит,
-	 * у меня иногда задачи создавались в одну и ту же милисекунду, из-за чего не проходили тесты на сортировку по времени
-	 */
 
 	void sleep() {
 		try {
@@ -338,7 +332,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	 */
 
 	void shouldSortFromEarliestToLatestStartTime(TaskManager manager) {
-		List<Task> testList = new ArrayList<>(manager.getPrioritizedTasks());
+		List<Task> testList = manager.getPrioritizedTasks();
 
 		assertEquals(1, testList.get(0).getId());
 		assertEquals(2, testList.get(1).getId());
@@ -404,7 +398,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 	}
 
 	void whenTaskEndTimeEqualsExistingTaskStartTime(TaskManager manager) {
-		Task task = new Task("Task3", "id7",	manager.getSubtaskById(5).getEndTime()
+		Task task = new Task("Task3", "id7", manager.getSubtaskById(5).getEndTime()
 				.plusMinutes(10).truncatedTo(ChronoUnit.SECONDS), Duration.ofMinutes(10));
 		manager.createNewTask(task);
 		assertEquals(manager.getSubtaskById(6).getStartTime().truncatedTo(ChronoUnit.SECONDS),

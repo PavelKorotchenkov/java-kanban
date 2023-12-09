@@ -5,19 +5,24 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
-	private int id;
-	private String name;
-	private String description;
-	private Status status;
-	private final TaskType type = TaskType.TASK;
+	protected int id;
+	protected String name;
+	protected String description;
+	protected Status status;
+	protected TaskType type;
+	protected LocalDateTime startTime;
+	protected Duration duration;
 
-	private LocalDateTime startTime;
-	private Duration duration;
+	public Task() {
+		this.status = Status.NEW;
+		this.type = TaskType.TASK;
+	}
 
 	public Task(String name, String description) {
 		this.name = name;
 		this.description = description;
 		this.status = Status.NEW;
+		this.type = TaskType.TASK;
 	}
 
 	public Task(String name, String description, LocalDateTime startTime, Duration duration) {
@@ -26,6 +31,7 @@ public class Task {
 		this.status = Status.NEW;
 		this.startTime = startTime;
 		this.duration = duration;
+		this.type = TaskType.TASK;
 	}
 
 	public Task(Task task) {
@@ -35,6 +41,7 @@ public class Task {
 		status = task.getStatus();
 		startTime = task.getStartTime();
 		duration = task.getDuration();
+		type = TaskType.TASK;
 	}
 
 	public LocalDateTime getEndTime() {
@@ -108,13 +115,19 @@ public class Task {
 
 	@Override
 	public String toString() {
-		return "Task{"
+		String stringTask = "Task{"
 				+ "name=" + name
 				+ ", description=" + description
 				+ ", status=" + status
-				+ ", id=" + id
-				+ ", startTime=" + startTime
-				+ ", endTime=" + getEndTime()
-				+ '}';
+				+ ", id=" + id;
+		if (startTime != null) {
+			stringTask = stringTask
+					+ ", startTime=" + startTime
+					+ ", endTime=" + getEndTime();
+		}
+
+		stringTask = stringTask + '}';
+
+		return stringTask;
 	}
 }

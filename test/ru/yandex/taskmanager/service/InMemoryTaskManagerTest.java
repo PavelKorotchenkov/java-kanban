@@ -1,12 +1,12 @@
 package ru.yandex.taskmanager.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.taskmanager.model.Task;
+import ru.yandex.taskmanager.model.Epictask;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
@@ -14,24 +14,39 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 	 * TESTING GET TASKS LIST
 	 */
 
+	@BeforeEach
+	void getManager() {
+		super.manager = new InMemoryTaskManager();
+
+		createTask("Task", "id1", LocalDateTime.now(), Duration.ofMinutes(20));
+		sleep();
+		createTask("Task2", "id2", LocalDateTime.now().plusMinutes(45), Duration.ofMinutes(20));
+		sleep();
+		Epictask epic = createEpictask("Epictask", "id3");
+		createEpictask("Epictask2", "id4");
+		createSubtask("Subtask", "id5", LocalDateTime.now().plusMinutes(80), Duration.ofMinutes(20), epic.getId());
+		sleep();
+		createSubtask("Subtask2", "id6", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20), epic.getId());
+	}
+
 	@Test
 	void tasksListShouldContainTaskAfterCreated() {
-		super.tasksListShouldContainTaskAfterCreated(memoryManager);
+		super.tasksListShouldContainTaskAfterCreated(manager);
 	}
 
 	@Test
 	void epictasksListShouldContainEpicTaskAfterCreated() {
-		super.epictasksListShouldContainEpicTaskAfterCreated(memoryManager);
+		super.epictasksListShouldContainEpicTaskAfterCreated(manager);
 	}
 
 	@Test
 	void subtasksListShouldContainSubTaskAfterCreated() {
-		super.subtasksListShouldContainSubTaskAfterCreated(memoryManager);
+		super.subtasksListShouldContainSubTaskAfterCreated(manager);
 	}
 
 	@Test
 	void tasksListsAreEmptyShouldReturnEmptyLists() {
-		super.tasksListsAreEmptyShouldReturnEmptyLists(memoryManager);
+		super.tasksListsAreEmptyShouldReturnEmptyLists(manager);
 	}
 
 	/**
@@ -40,41 +55,42 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void clearTasksShouldOnlyRemoveTasks() {
-		super.clearTasksShouldOnlyRemoveTasks(memoryManager);
+		super.clearTasksShouldOnlyRemoveTasks(manager);
 	}
 
 	@Test
 	void clearEpictasksShouldRemoveEpictasksAndSubtasks() {
-		super.clearEpictasksShouldRemoveEpictasksAndSubtasks(memoryManager);
+		super.clearEpictasksShouldRemoveEpictasksAndSubtasks(manager);
 	}
 
 	@Test
 	void clearSubtasksShouldOnlyRemoveSubtasks() {
-		super.clearSubtasksShouldOnlyRemoveSubtasks(memoryManager);
+		super.clearSubtasksShouldOnlyRemoveSubtasks(manager);
 	}
 
 	/**
 	 * TESTING getTaskById
-	 */
+	 * */
+
 
 	@Test
 	void getTaskByIdShouldReturnTaskWithThatId() {
-		super.getTaskByIdShouldReturnTaskWithThatId(memoryManager);
+		super.getTaskByIdShouldReturnTaskWithThatId(manager);
 	}
 
 	@Test
 	void getEpictaskByIdShouldReturnEpictaskWithThatId() {
-		super.getEpictaskByIdShouldReturnEpictaskWithThatId(memoryManager);
+		super.getEpictaskByIdShouldReturnEpictaskWithThatId(manager);
 	}
 
 	@Test
 	void getSubtaskByIdShouldReturnSubtaskWithThatId() {
-		super.getSubtaskByIdShouldReturnSubtaskWithThatId(memoryManager);
+		super.getSubtaskByIdShouldReturnSubtaskWithThatId(manager);
 	}
 
 	@Test
 	void getTaskEpictaskSubtaskByIdShouldReturnNullIfThatListIsEmpty() {
-		super.getTaskEpictaskSubtaskByIdShouldReturnNullIfThatListIsEmpty(memoryManager);
+		super.getTaskEpictaskSubtaskByIdShouldReturnNullIfThatListIsEmpty(manager);
 	}
 
 	/**
@@ -83,17 +99,17 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void createNewTaskShouldSetIdAndAddToTasksList() {
-		super.createNewTaskShouldSetIdAndAddToTasksList(memoryManager);
+		super.createNewTaskShouldSetIdAndAddToTasksList(manager);
 	}
 
 	@Test
 	void createNewEpictaskShouldSetIdAndAddToEpictasksList() {
-		super.createNewEpictaskShouldSetIdAndAddToEpictasksList(memoryManager);
+		super.createNewEpictaskShouldSetIdAndAddToEpictasksList(manager);
 	}
 
 	@Test
 	void createNewSubtaskShouldSetIdAndAddToSubtasksList() {
-		super.createNewSubtaskShouldSetIdAndAddToSubtasksList(memoryManager);
+		super.createNewSubtaskShouldSetIdAndAddToSubtasksList(manager);
 	}
 
 	/**
@@ -102,17 +118,17 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void taskShouldHaveNewDescriptionAfterUpdate() {
-		super.taskShouldHaveNewDescriptionAfterUpdate(memoryManager);
+		super.taskShouldHaveNewDescriptionAfterUpdate(manager);
 	}
 
 	@Test
 	void epictaskShouldHaveNewDescriptionAfterUpdate() {
-		super.epictaskShouldHaveNewDescriptionAfterUpdate(memoryManager);
+		super.epictaskShouldHaveNewDescriptionAfterUpdate(manager);
 	}
 
 	@Test
 	void subtaskShouldHaveNewDescriptionAfterUpdate() {
-		super.subtaskShouldHaveNewDescriptionAfterUpdate(memoryManager);
+		super.subtaskShouldHaveNewDescriptionAfterUpdate(manager);
 	}
 
 	/**
@@ -121,17 +137,17 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1() {
-		super.taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1(memoryManager);
+		super.taskWithId1ShouldBeDeletedAfterDeleteTaskWithId1(manager);
 	}
 
 	@Test
 	void epictaskWithId3ShouldBeDeletedAfterDeleteEpictaskWithId3() {
-		super.epictaskWithId3ShouldBeDeletedAfterDeleteEpictaskWithId3(memoryManager);
+		super.epictaskWithId3ShouldBeDeletedAfterDeleteEpictaskWithId3(manager);
 	}
 
 	@Test
 	void subtaskWithId5ShouldBeDeletedAfterDeleteSubtaskWithId5() {
-		super.subtaskWithId5ShouldBeDeletedAfterDeleteSubtaskWithId5(memoryManager);
+		super.subtaskWithId5ShouldBeDeletedAfterDeleteSubtaskWithId5(manager);
 	}
 
 	/**
@@ -140,7 +156,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void shouldReturnListOfSubtasks() {
-		super.shouldReturnListOfSubtasks(memoryManager);
+		super.shouldReturnListOfSubtasks(manager);
 	}
 
 	/**
@@ -149,27 +165,27 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void epicStatusIsNewWhenEpictaskIsCreated() {
-		super.epicStatusIsNewWhenEpictaskIsCreated(memoryManager);
+		super.epicStatusIsNewWhenEpictaskIsCreated(manager);
 	}
 
 	@Test
 	void epicStatusIsNewWhenAllSubtasksAreNew() {
-		super.epicStatusIsNewWhenAllSubtasksAreNew(memoryManager);
+		super.epicStatusIsNewWhenAllSubtasksAreNew(manager);
 	}
 
 	@Test
 	void epicStatusIsDoneWhenAllSubtasksAreDone() {
-		super.epicStatusIsDoneWhenAllSubtasksAreDone(memoryManager);
+		super.epicStatusIsDoneWhenAllSubtasksAreDone(manager);
 	}
 
 	@Test
 	void epicStatusIsInProgressWhenSubtasksAreNewAndDone() {
-		super.epicStatusIsInProgressWhenSubtasksAreNewAndDone(memoryManager);
+		super.epicStatusIsInProgressWhenSubtasksAreNewAndDone(manager);
 	}
 
 	@Test
 	void epicStatusIsInProgressWhenAllSubtasksAreInProgress() {
-		super.epicStatusIsInProgressWhenAllSubtasksAreInProgress(memoryManager);
+		super.epicStatusIsInProgressWhenAllSubtasksAreInProgress(manager);
 	}
 
 	/**
@@ -178,35 +194,36 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void subtaskShouldHaveEpicId3() {
-		super.subtaskShouldHaveEpicId3(memoryManager);
+		super.subtaskShouldHaveEpicId3(manager);
 	}
 
 	/**
 	 * TESTING HISTORY
 	 */
+
 	@Test
 	void getTaskByIdShouldSaveTaskToHistory() {
-		super.getTaskByIdShouldSaveTaskToHistory(memoryManager);
+		super.getTaskByIdShouldSaveTaskToHistory(manager);
 	}
 
 	@Test
 	void getEpictaskByIdShouldSaveEpictaskToHistory() {
-		super.getEpictaskByIdShouldSaveEpictaskToHistory(memoryManager);
+		super.getEpictaskByIdShouldSaveEpictaskToHistory(manager);
 	}
 
 	@Test
 	void getSubTaskByIdShouldSaveTaskToHistory() {
-		super.getSubTaskByIdShouldSaveTaskToHistory(memoryManager);
+		super.getSubTaskByIdShouldSaveTaskToHistory(manager);
 	}
 
 	@Test
 	void shouldReturnHistoryAsListOfTasksWithId1Id2Id3Id5() {
-		super.shouldReturnHistoryAsListOfTasksWithId1Id2Id3Id5(memoryManager);
+		super.shouldReturnHistoryAsListOfTasksWithId1Id2Id3Id5(manager);
 	}
 
 	@Test
 	void taskShouldGoToTheEndOfHistoryAfterGetTaskById() {
-		super.taskShouldGoToTheEndOfHistoryAfterGetTaskById(memoryManager);
+		super.taskShouldGoToTheEndOfHistoryAfterGetTaskById(manager);
 	}
 
 	/**
@@ -215,22 +232,22 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void shouldCalculateTaskEndTime() {
-		super.shouldCalculateTaskEndTime(memoryManager);
+		super.shouldCalculateTaskEndTime(manager);
 	}
 
 	@Test
 	void shouldCalculateEpictaskStartTime() {
-		super.shouldCalculateEpictaskStartTime(memoryManager);
+		super.shouldCalculateEpictaskStartTime(manager);
 	}
 
 	@Test
 	void shouldCalculateEpictaskEndTime() {
-		super.shouldCalculateEpictaskEndTime(memoryManager);
+		super.shouldCalculateEpictaskEndTime(manager);
 	}
 
 	@Test
 	void shouldCalculateSubtaskEndTime() {
-		super.shouldCalculateSubtaskEndTime(memoryManager);
+		super.shouldCalculateSubtaskEndTime(manager);
 	}
 
 	/**
@@ -239,12 +256,12 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void shouldSortFromEarliestToLatestStartTime() {
-		super.shouldSortFromEarliestToLatestStartTime(memoryManager);
+		super.shouldSortFromEarliestToLatestStartTime(manager);
 	}
 
 	@Test
 	void testSortByTimeWithNulls() {
-		super.testSortByTimeWithNulls(memoryManager);
+		super.testSortByTimeWithNulls(manager);
 	}
 
 	/**
@@ -253,31 +270,31 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
 	@Test
 	void shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts() {
-		super.shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts(memoryManager);
+		super.shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts(manager);
 	}
 
 	@Test
 	void shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts() {
-		super.shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts(memoryManager);
+		super.shouldThrowStartEndTimeConflictExceptionWhenEndTimeConflicts(manager);
 	}
 
 	@Test
 	void whenIncludesInTimeExistingTask() {
-		super.whenIncludesInTimeExistingTask(memoryManager);
+		super.whenIncludesInTimeExistingTask(manager);
 	}
 
 	@Test
 	void whenTaskStartTimeEqualsExistingTaskEndTime() {
-		super.whenTaskStartTimeEqualsExistingTaskEndTime(memoryManager);
+		super.whenTaskStartTimeEqualsExistingTaskEndTime(manager);
 	}
 
 	@Test
 	void whenTaskEndTimeEqualsExistingTaskStartTime(){
-		super.whenTaskEndTimeEqualsExistingTaskStartTime(memoryManager);
+		super.whenTaskEndTimeEqualsExistingTaskStartTime(manager);
 	}
 
 	@Test
 	void givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree() {
-		super.givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree(memoryManager);
+		super.givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree(manager);
 	}
 }

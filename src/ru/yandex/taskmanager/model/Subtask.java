@@ -4,22 +4,28 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class Subtask extends Task {
-	private final int epicId;
-	private final TaskType type = TaskType.SUBTASK;
+	private int epicId; // final?
+
+	public Subtask() {
+		this.type = TaskType.SUBTASK;
+	}
 
 	public Subtask(String name, String description, int epicId) {
 		super(name, description);
 		this.epicId = epicId;
+		this.type = TaskType.SUBTASK;
 	}
 
 	public Subtask(String name, String description, LocalDateTime startTime, Duration duration, int epicId) {
 		super(name, description, startTime, duration);
 		this.epicId = epicId;
+		this.type = TaskType.SUBTASK;
 	}
 
 	public Subtask(Subtask subtask){
 		super(subtask);
-		epicId = subtask.getEpicTaskId();
+		this.epicId = subtask.getEpicTaskId();
+		this.type = TaskType.SUBTASK;
 	}
 
 	public int getEpicTaskId() {
@@ -33,13 +39,19 @@ public class Subtask extends Task {
 
 	@Override
 	public String toString() {
-		return "Subtask{"
-				+ "name=" + getName()
-				+ ", description=" + getDescription()
-				+ ", status=" + getStatus()
-				+ ", id=" + getId()
-				+ ", startTime=" + getStartTime()
-				+ ", endTime=" + getEndTime()
-				+ '}';
+		String stringTask = "Subtask{"
+				+ "name=" + name
+				+ ", description=" + description
+				+ ", status=" + status
+				+ ", id=" + id;
+		if (startTime != null) {
+			stringTask = stringTask
+					+ ", startTime=" + startTime
+					+ ", endTime=" + getEndTime();
+		}
+
+		stringTask = stringTask + '}';
+
+		return stringTask;
 	}
 }

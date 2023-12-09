@@ -3,7 +3,6 @@ package ru.yandex.taskmanager.service;
 import ru.yandex.taskmanager.exception.ManagerSaveException;
 import ru.yandex.taskmanager.model.*;
 import ru.yandex.taskmanager.util.FileStringConverter;
-import ru.yandex.taskmanager.util.Managers;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -11,8 +10,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
@@ -101,20 +98,13 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 		this.path = path;
 	}
 
-	private void save() {
+	protected void save() {
 		String header = "id,type,name,status,description,start_time,duration_time,epic,\n";
 		try (Writer writer = new FileWriter(path)) {
 			writer.write(header);
-			for (Task task : getTasksList()) {
+
+			for (Task task : getAllTasksEpictasksSubtasks()) {
 				writer.write(FileStringConverter.taskToString(task));
-			}
-
-			for (Epictask epictask : getEpictasksList()) {
-				writer.write(FileStringConverter.taskToString(epictask));
-			}
-
-			for (Subtask subtask : getSubtasksList()) {
-				writer.write(FileStringConverter.taskToString(subtask));
 			}
 
 			writer.write("\n");
@@ -127,11 +117,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 	}
 
 	//refactor
-	public static FileBackedTasksManager load(File file) {
-		FileBackedTasksManager manager = new FileBackedTasksManager(file.getAbsolutePath());
+	public static FileBackedTasksManager load(String file) {
+		FileBackedTasksManager manager = new FileBackedTasksManager(file);
 		String string;
 		try {
-			string = Files.readString(Path.of(file.getAbsolutePath()));
+			string = Files.readString(Path.of(file));
 		} catch (IOException e) {
 			throw new ManagerSaveException("Ошибка при загрузке");
 		}

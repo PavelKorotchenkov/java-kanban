@@ -19,7 +19,7 @@ public class FileStringConverter {
 				+ task.getDuration() + ",";
 
 		//refactor
-		if (task.getType().equals(TaskType.SUBTASK)) {
+		if (TaskType.SUBTASK.equals(task.getType())) {
 			int epicId = ((Subtask) task).getEpicTaskId();
 			taskAsString = taskAsString + epicId;
 		}

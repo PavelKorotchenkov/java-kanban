@@ -6,18 +6,24 @@ import java.util.HashMap;
 import java.util.Collection;
 
 public class Epictask extends Task {
-	private final TaskType type = TaskType.EPIC;
-	private final Map<Integer, Subtask> subtasks = new HashMap<>();
+	private Map<Integer, Subtask> subtasks = new HashMap<>();
 
 	private LocalDateTime endTime;
 
+	public Epictask() {
+		type = TaskType.EPIC;
+	}
+
 	public Epictask(String name, String description) {
 		super(name, description);
+		type = TaskType.EPIC;
 	}
 
 	public Epictask(Epictask epictask) {
 		super(epictask);
 		endTime = epictask.getEndTime();
+		type = TaskType.EPIC;
+		this.subtasks = epictask.subtasks;
 	}
 
 	public void setEndTime(LocalDateTime endTime) {
@@ -49,10 +55,10 @@ public class Epictask extends Task {
 	@Override
 	public String toString() {
 		return "EpicTask{"
-				+ "name=" + getName()
-				+ ", description=" + getDescription()
-				+ ", status=" + getStatus()
-				+ ", id=" + getId()
+				+ "name=" + name
+				+ ", description=" + description
+				+ ", status=" + status
+				+ ", id=" + id
 				+ ", subtasks=" + subtasks.keySet() +
 				'}';
 	}

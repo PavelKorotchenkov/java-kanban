@@ -1,7 +1,5 @@
 id,type,name,status,description,start_time,duration_time,epic,
-1,TASK,Задача №1,NEW,Легкая,2023-11-22T16:47:29.973062,PT20M,
-2,TASK,Задача №2,NEW,Легкая,2023-11-22T17:07:30.032694600,PT20M,
-3,EPIC,Эпик Задача №1,NEW,Сложная,2023-11-22T17:27:30.033693600,PT20M0.0100041S,
-4,SUBTASK,Подзадача №1,NEW,Средняя,2023-11-22T17:27:30.033693600,PT10M,3
-5,SUBTASK,Подзадача №2,NEW,Средняя,2023-11-22T17:37:30.043697700,PT10M,3
+1,TASK,task 2,NEW,description,2024-01-01T10:50,PT1H30M,
+2,EPIC,epictask1,NEW,description,null,null,
+3,SUBTASK,subtask2,NEW,description,null,null,2
 
