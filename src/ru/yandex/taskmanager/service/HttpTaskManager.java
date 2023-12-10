@@ -143,90 +143,75 @@ public class HttpTaskManager extends FileBackedTasksManager {
 	@Override
 	public void clearTasks() {
 		super.clearTasks();
-		save();
 	}
 
 	@Override
 	public void clearEpictasks() {
 		super.clearEpictasks();
-		save();
 	}
 
 	@Override
 	public void clearSubtasks() {
 		super.clearSubtasks();
-		save();
 	}
 
 	@Override
 	public void createNewTask(Task task) {
 		super.createNewTask(task);
-		save();
 	}
 
 	@Override
 	public void createNewEpictask(Epictask task) {
 		super.createNewEpictask(task);
-		save();
 	}
 
 	@Override
 	public void createNewSubtask(Subtask subtask) {
 		super.createNewSubtask(subtask);
-		save();
 	}
 
 	@Override
 	public void updateTask(Task task) {
 		super.updateTask(task);
-		save();
 	}
 
 	@Override
 	public void updateSubtask(Subtask task) {
 		super.updateSubtask(task);
-		save();
 	}
 
 	@Override
 	public void updateEpictask(Epictask task) {
 		super.updateEpictask(task);
-		save();
 	}
 
 	@Override
 	public void deleteTaskById(int taskId) {
 		super.deleteTaskById(taskId);
-		save();
 	}
 
 	@Override
 	public void deleteEpictaskById(int taskId) {
 		super.deleteEpictaskById(taskId);
-		save();
 	}
 
 	@Override
 	public void deleteSubtaskById(int taskId) {
 		super.deleteSubtaskById(taskId);
-		save();
 	}
 
 	@Override
 	public Task getTaskById(int taskId) {
-		save();
 		return super.getTaskById(taskId);
 	}
 
 	@Override
 	public Epictask getEpictaskById(int taskId) {
-		save();
 		return super.getEpictaskById(taskId);
 	}
 
 	@Override
 	public Subtask getSubtaskById(int taskId) {
-		save();
 		return super.getSubtaskById(taskId);
 	}
 }
