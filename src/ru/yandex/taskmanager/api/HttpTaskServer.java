@@ -26,25 +26,30 @@ import java.util.List;
 import java.util.Optional;
 
 public class HttpTaskServer implements HttpHandler {
-	private static final int PORT = 8080;
+	private final int port;
 	private final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	private final Gson gson;
 	private final TaskManager manager;
 	private final HttpServer server;
 
-	public HttpTaskServer() throws IOException, InterruptedException {
+	public HttpTaskServer(int port, TaskManager manager) throws IOException {
+		this.port = port;
 		gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
 				.registerTypeAdapter(Duration.class, new DurationDeserializer())
 				.create();
-		manager = Managers.getDefault();
-		server = HttpServer.create(new InetSocketAddress("localhost", PORT), 0);
+		this.manager = manager;
+		server = HttpServer.create(new InetSocketAddress(port), 0);
 		server.createContext("/tasks", this);
 	}
 
-	public static void main(String[] args) throws IOException, InterruptedException {
-		HttpTaskServer taskServer = new HttpTaskServer();
-		taskServer.start();
-		//taskServer.stop();
+	public void start() {
+		System.out.println("Сервер начал работу на порту " + port);
+		server.start();
+	}
+
+	public void stop() {
+		System.out.println("Сервер остановил работу на порту " + port);
+		server.stop(0);
 	}
 
 	@Override
@@ -193,11 +198,11 @@ public class HttpTaskServer implements HttpHandler {
 				manager.createNewTask(newTask);
 				writeResponse(exchange, "Задача добавлена", 200);
 			} else {
-				if (taskFound(newTask.getId(),manager.getEpictasksList())) {
+				if (taskFound(newTask.getId(), manager.getEpictasksList())) {
 					manager.updateTask(newTask);
 					writeResponse(exchange, "Задача обновлена", 200);
-				} else{
-					writeResponse(exchange, "В вашем запросе указан несуществующий ID", 400);
+				} else {
+					writeResponse(exchange, "В вашем запросе указан несуществующий ID", 404);
 				}
 			}
 		} catch (StartEndTimeConflictException s) {
@@ -219,7 +224,7 @@ public class HttpTaskServer implements HttpHandler {
 					manager.updateEpictask(newTask);
 					writeResponse(exchange, "Эпик обновлен", 200);
 				} else {
-					writeResponse(exchange, "В вашем запросе указан несуществующий ID", 400);
+					writeResponse(exchange, "В вашем запросе указан несуществующий ID", 404);
 				}
 			}
 		} catch (Exception e) {
@@ -233,7 +238,7 @@ public class HttpTaskServer implements HttpHandler {
 			Subtask newTask = gson.fromJson(body, Subtask.class);
 			int epicId = newTask.getEpicTaskId();
 			if (!taskFound(epicId, manager.getEpictasksList())) {
-				writeResponse(exchange, "Эпика с переданным ID не существует", 400);
+				writeResponse(exchange, "Эпика с переданным ID не существует", 404);
 			} else {
 				if (newTask.getId() == 0) {
 					manager.createNewSubtask(newTask);
@@ -243,7 +248,7 @@ public class HttpTaskServer implements HttpHandler {
 						manager.updateSubtask(newTask);
 						writeResponse(exchange, "Задача обновлена", 200);
 					} else {
-						writeResponse(exchange, "В вашем запросе указан несуществующий ID", 400);
+						writeResponse(exchange, "В вашем запросе указан несуществующий ID", 404);
 					}
 				}
 			}
@@ -418,7 +423,7 @@ public class HttpTaskServer implements HttpHandler {
 			int id = Integer.parseInt(pathId);
 			optionalTask = taskList.stream().filter(task -> task.getId() == id).findFirst();
 		} catch (NumberFormatException exception) {
-			writeResponse(exchange, "Передан некорректный ID.", 404);
+			writeResponse(exchange, "Передан некорректный ID.", 400);
 		}
 
 		return optionalTask;
@@ -433,15 +438,14 @@ public class HttpTaskServer implements HttpHandler {
 		return false;
 	}
 
-
-	public void start() {
-		System.out.println("Сервер начал работу на порту " + PORT);
-		server.start();
-	}
-
-	public void stop() {
-		System.out.println("Сервер остановил работу на порту " + PORT);
-		server.stop(0);
+	public static void main(String[] args) throws IOException, InterruptedException {
+		KVServer kvServer = new KVServer();
+		kvServer.start();
+		TaskManager httpManager = Managers.getDefault();
+		HttpTaskServer taskServer = new HttpTaskServer(8080, httpManager);
+		taskServer.start();
+		Thread.sleep(5000);
+		taskServer.stop();
 	}
 }
 

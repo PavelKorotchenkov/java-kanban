@@ -1,65 +1,33 @@
 package ru.yandex.taskmanager.service;
 
 import com.google.gson.*;
+import ru.yandex.taskmanager.api.KVServer;
 import ru.yandex.taskmanager.api.KVTaskClient;
+import ru.yandex.taskmanager.exception.HttpLoadException;
 import ru.yandex.taskmanager.exception.ManagerSaveException;
 import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Subtask;
 import ru.yandex.taskmanager.model.Task;
 import ru.yandex.taskmanager.util.FileStringConverter;
 import ru.yandex.taskmanager.util.LocalDateTimeAdapter;
+import ru.yandex.taskmanager.util.Managers;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public class HttpTaskManager extends FileBackedTasksManager {
-	private final String URL;
+	//private final String URL;
 	private static KVTaskClient client;
 	private static Gson gson;
 
 	public HttpTaskManager(String url) throws IOException, InterruptedException {
 		super(url);
-		this.URL = url;
-		client = new KVTaskClient(8078);
+	//	this.URL = url;
+		client = new KVTaskClient();
 		gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter()).create();
-	}
-
-	public static void main(String[] args) throws IOException, InterruptedException {
-		/*KVServer server = new KVServer();
-		server.start();
-		HttpTaskManager manager = new HttpTaskManager("http://localhost:8078/");
-		LocalDate date = LocalDate.now();
-		LocalTime time = LocalTime.of(18, 30);
-
-		Task task1 = new Task("Task name", "Task desc", LocalDateTime.of(date, time), Duration.ofMinutes(30));
-		manager.createNewTask(task1);
-		manager.getTaskById(task1.getId());
-
-		Task task2 = new Task("Task name2", "Task desc2");
-		manager.createNewTask(task2);
-		manager.getTaskById(task2.getId());
-
-		Epictask epic = new Epictask("Epic", "Epic desc");
-		manager.createNewEpictask(epic);
-		manager.getEpictaskById(epic.getId());
-
-		Subtask sub = new Subtask("Sub 1", "Sub desc", 3);
-		manager.createNewSubtask(sub);
-		manager.getSubtaskById(sub.getId());
-
-		manager.deleteTaskById(task1.getId());
-
-		System.out.println("BEFORE LOAD");
-		System.out.println(manager.getTasksList());
-		System.out.println(manager.getEpictasksList());
-		System.out.println(manager.getSubtasksList());
-
-		System.out.println("AFTER LOAD");
-		HttpTaskManager manager2 = HttpTaskManager.load("http://localhost:8078/");
-		System.out.println(manager2.getTasksList());
-		System.out.println(manager2.getEpictasksList());
-		System.out.println(manager2.getSubtasksList());
-*/
 	}
 
 	@Override
@@ -135,7 +103,7 @@ public class HttpTaskManager extends FileBackedTasksManager {
 			}
 
 		} catch (IOException | InterruptedException e) {
-			throw new ManagerSaveException("Ошибка при загрузке менеджера с сервера");
+			throw new HttpLoadException("Ошибка при загрузке менеджера с сервера");
 		}
 		return httpTaskManager;
 	}
@@ -214,4 +182,52 @@ public class HttpTaskManager extends FileBackedTasksManager {
 	public Subtask getSubtaskById(int taskId) {
 		return super.getSubtaskById(taskId);
 	}
+
+	/*public static void main(String[] args) throws IOException, InterruptedException {
+		KVServer server = Managers.getDefaultKVServer();
+		server.start();
+		HttpTaskManager manager = new HttpTaskManager("http://localhost:8078/");
+		LocalDate date = LocalDate.now();
+		LocalTime time = LocalTime.of(18, 30);
+
+		Task task1 = new Task("Task name", "Task desc", LocalDateTime.of(date, time), Duration.ofMinutes(30));
+		manager.createNewTask(task1);
+		manager.getTaskById(task1.getId());
+
+		Task task2 = new Task("Task name2", "Task desc2");
+		manager.createNewTask(task2);
+		manager.getTaskById(task2.getId());
+
+		Epictask epic = new Epictask("Epic", "Epic desc");
+		manager.createNewEpictask(epic);
+		manager.getEpictaskById(epic.getId());
+
+		Subtask sub = new Subtask("Sub 1", "Sub desc", 3);
+		manager.createNewSubtask(sub);
+		manager.getSubtaskById(sub.getId());
+
+		sub.setDescription("Updated desc");
+		manager.updateSubtask(sub);
+
+		Subtask sub2 = new Subtask("Sub 2", "Sub desc2", 3);
+		manager.createNewSubtask(sub2);
+
+		LocalDate date2 = LocalDate.now();
+		LocalTime time2 = LocalTime.of(19, 30);
+
+		Subtask sub3 = new Subtask("Sub 3", "Sub desc3", LocalDateTime.of(date2, time2), Duration.ofMinutes(30),3);
+		manager.createNewSubtask(sub3);
+
+		System.out.println("BEFORE LOAD");
+		System.out.println(manager.getTasksList());
+		System.out.println(manager.getEpictasksList());
+		System.out.println(manager.getSubtasksList());
+
+		System.out.println("AFTER LOAD");
+		HttpTaskManager manager2 = HttpTaskManager.load("http://localhost:8078/");
+		System.out.println(manager2.getTasksList());
+		System.out.println(manager2.getEpictasksList());
+		System.out.println(manager2.getSubtasksList());
+		server.stop();
+	}*/
 }

@@ -28,9 +28,9 @@ class HttpTaskManagerTest extends TaskManagerTest<HttpTaskManager> {
 
 	@BeforeEach
 	void getManager() throws IOException, InterruptedException {
-		server = new KVServer();
+		server = Managers.getDefaultKVServer();
 		server.start();
-		super.manager = Managers.getDefault("http://localhost:8078");
+		super.manager = Managers.getDefault();
 
 		createTask("Task", "id1", LocalDateTime.now(), Duration.ofMinutes(20));
 		sleep();
@@ -493,4 +493,5 @@ class HttpTaskManagerTest extends TaskManagerTest<HttpTaskManager> {
 		HttpTaskManager httpManager2 = HttpTaskManager.load("http://localhost:8078");
 		assertEquals(7, httpManager2 .getTaskById(7).getId());
 	}
+
 }

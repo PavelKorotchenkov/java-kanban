@@ -132,10 +132,7 @@ public class InMemoryTaskManager implements TaskManager {
 		tasksSortedByStartTime.add(subtask);
 
 		checkStatus(epicId);
-
-		if (subtask.getStartTime() != null) {
-			calculateEpicStartEndTime(epicId);
-		}
+		calculateEpicStartEndTime(subtask);
 	}
 
 	@Override
@@ -158,7 +155,7 @@ public class InMemoryTaskManager implements TaskManager {
 			tasksSortedByStartTime.add(task);
 
 			checkStatus(task.getEpicTaskId());
-			calculateEpicStartEndTime(task.getEpicTaskId());
+			calculateEpicStartEndTime(task);
 		}
 	}
 
@@ -192,7 +189,7 @@ public class InMemoryTaskManager implements TaskManager {
 		int epicId = subtask.getEpicTaskId();
 		epictasks.get(epicId).deleteSubtask(taskId);
 		checkStatus(epicId);
-		calculateEpicStartEndTime(subtask.getEpicTaskId());
+		calculateEpicStartEndTime(subtask);
 		historyManager.remove(taskId);
 		tasksSortedByStartTime.remove(subtask);
 	}
@@ -237,18 +234,23 @@ public class InMemoryTaskManager implements TaskManager {
 		epictasks.get(epicId).setStatus(Status.IN_PROGRESS);
 	}
 
-	private void calculateEpicStartEndTime(int epicId) {
+	private void calculateEpicStartEndTime(Subtask subtask) {
+		if (subtask.getStartTime() == null) {return;}
+
+		int epicId = subtask.getEpicTaskId();
 		List<Subtask> subtasks = getSubtasks(epicId);
 
-		LocalDateTime startTime = subtasks.get(0).getStartTime();
-		LocalDateTime endTime = subtasks.get(0).getEndTime();
-		for (Subtask subtask : subtasks) {
-			if (subtask.getStartTime().isBefore(startTime)) {
-				startTime = subtask.getStartTime();
-			}
+		LocalDateTime startTime = subtask.getStartTime();
+		LocalDateTime endTime = subtask.getEndTime();
 
-			if (subtask.getEndTime().isAfter(endTime)) {
-				endTime = subtask.getEndTime();
+		for (Subtask sub : subtasks) {
+			if (sub.getStartTime() == null) {continue;}
+
+			if (startTime.isAfter(sub.getStartTime())) {
+				startTime = sub.getStartTime();
+			}
+			if (endTime.isBefore(sub.getEndTime())) {
+				endTime = sub.getEndTime();
 			}
 		}
 

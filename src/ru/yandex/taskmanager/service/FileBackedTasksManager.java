@@ -13,84 +13,6 @@ import java.util.List;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
 
-	/*public static void main(String[] args) {
-		String path = "./resources/saved.csv";
-		TaskManager manager = Managers.getDefault();
-		Task task1 = new Task("Задача №1", "1", LocalDateTime.now(), Duration.ofMinutes(10));
-		manager.createNewTask(task1);
-
-		Task task2 = new Task("Задача №2", "2", LocalDateTime.now(), Duration.ofMinutes(10));
-		manager.createNewTask(task2);
-
-		Epictask task3 = new Epictask("Эпик Задача №1", "3");
-		manager.createNewEpictask(task3);
-
-		Subtask task4 = new Subtask("Подзадача №1", "4", LocalDateTime.now(), Duration.ofMinutes(10), task3.getId());
-		manager.createNewSubtask(task4);
-
-		Subtask task5 = new Subtask("Подзадача №2", "5", LocalDateTime.now(), Duration.ofMinutes(10), task3.getId());
-		manager.createNewSubtask(task5);
-
-		Epictask task6 = new Epictask("Эпик Задача №2", "6");
-		manager.createNewEpictask(task6);
-
-		Task task7 = new Task("Задача №7", "7", LocalDateTime.now(), Duration.ofMinutes(10));
-		manager.createNewTask(task7);
-
-		manager.getTaskById(task1.getId());
-		manager.getTaskById(task2.getId());
-		manager.getEpictaskById(task3.getId());
-		manager.getSubtaskById(task4.getId());
-		manager.getSubtaskById(task5.getId());
-		manager.getEpictaskById(task6.getId());
-		manager.getSubtaskById(task5.getId());
-		manager.getSubtaskById(task4.getId());
-		task1.setStatus(Status.IN_PROGRESS);
-		manager.updateTask(task1);
-		task5.setStatus(Status.IN_PROGRESS);
-		manager.updateSubtask(task5);
-		manager.getTaskById(task1.getId());
-
-		//load from file
-		TaskManager manager1 = FileBackedTasksManager.load(new File(path));
-		System.out.println("FIRST LOAD");
-		System.out.println(manager1.getTasksList());
-		System.out.println(manager1.getEpictasksList());
-		System.out.println(manager1.getSubtasksList());
-		System.out.println(manager1.getHistory());
-		System.out.println();
-		System.out.println("CHECKING EPIC TIME");
-		System.out.println(manager1.getEpictaskById(3).getStartTime());
-		System.out.println(manager1.getEpictaskById(3).getEndTime());
-		System.out.println(manager1.getEpictaskById(3).getDuration());
-		System.out.println("subtasks list");
-		System.out.println(manager1.getSubtasks(3));
-		System.out.println("subtasks list end");
-		System.out.println(manager1.getSubtaskById(4).getStartTime());
-		System.out.println(manager1.getSubtaskById(4).getEndTime());
-		System.out.println(manager1.getSubtaskById(4).getDuration());
-		System.out.println("TIME CHECK END");
-		System.out.println();
-
-
-		Task task8 = new Task("New task 8", "after load 8", LocalDateTime.now(), Duration.ofMinutes(10));
-		manager1.createNewTask(task8);
-		Task task9 = new Task("New task 9", "after load 9", LocalDateTime.now(), Duration.ofMinutes(10));
-		manager1.createNewTask(task9);
-		manager1.getTaskById(task8.getId());
-		manager1.getTaskById(task9.getId());
-
-		System.out.println("AFTER LOAD AND CREATING NEW TASKS:");
-		System.out.println(manager1.getTasksList());
-		System.out.println(manager1.getEpictasksList());
-		System.out.println(manager1.getSubtasksList());
-		System.out.println("NEW HISTORY");
-		System.out.println(manager1.getHistory());
-
-		System.out.println("GET");
-		System.out.println(manager1.getTaskById(7));
-	}*/
-
 	private final String path;
 
 	public FileBackedTasksManager(String path) {
@@ -267,4 +189,82 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 		save();
 		return task;
 	}
+
+	/*public static void main(String[] args) {
+		String path = "./resources/saved.csv";
+		TaskManager manager = Managers.getDefault();
+		Task task1 = new Task("Задача №1", "1", LocalDateTime.now(), Duration.ofMinutes(10));
+		manager.createNewTask(task1);
+
+		Task task2 = new Task("Задача №2", "2", LocalDateTime.now(), Duration.ofMinutes(10));
+		manager.createNewTask(task2);
+
+		Epictask task3 = new Epictask("Эпик Задача №1", "3");
+		manager.createNewEpictask(task3);
+
+		Subtask task4 = new Subtask("Подзадача №1", "4", LocalDateTime.now(), Duration.ofMinutes(10), task3.getId());
+		manager.createNewSubtask(task4);
+
+		Subtask task5 = new Subtask("Подзадача №2", "5", LocalDateTime.now(), Duration.ofMinutes(10), task3.getId());
+		manager.createNewSubtask(task5);
+
+		Epictask task6 = new Epictask("Эпик Задача №2", "6");
+		manager.createNewEpictask(task6);
+
+		Task task7 = new Task("Задача №7", "7", LocalDateTime.now(), Duration.ofMinutes(10));
+		manager.createNewTask(task7);
+
+		manager.getTaskById(task1.getId());
+		manager.getTaskById(task2.getId());
+		manager.getEpictaskById(task3.getId());
+		manager.getSubtaskById(task4.getId());
+		manager.getSubtaskById(task5.getId());
+		manager.getEpictaskById(task6.getId());
+		manager.getSubtaskById(task5.getId());
+		manager.getSubtaskById(task4.getId());
+		task1.setStatus(Status.IN_PROGRESS);
+		manager.updateTask(task1);
+		task5.setStatus(Status.IN_PROGRESS);
+		manager.updateSubtask(task5);
+		manager.getTaskById(task1.getId());
+
+		//load from file
+		TaskManager manager1 = FileBackedTasksManager.load(new File(path));
+		System.out.println("FIRST LOAD");
+		System.out.println(manager1.getTasksList());
+		System.out.println(manager1.getEpictasksList());
+		System.out.println(manager1.getSubtasksList());
+		System.out.println(manager1.getHistory());
+		System.out.println();
+		System.out.println("CHECKING EPIC TIME");
+		System.out.println(manager1.getEpictaskById(3).getStartTime());
+		System.out.println(manager1.getEpictaskById(3).getEndTime());
+		System.out.println(manager1.getEpictaskById(3).getDuration());
+		System.out.println("subtasks list");
+		System.out.println(manager1.getSubtasks(3));
+		System.out.println("subtasks list end");
+		System.out.println(manager1.getSubtaskById(4).getStartTime());
+		System.out.println(manager1.getSubtaskById(4).getEndTime());
+		System.out.println(manager1.getSubtaskById(4).getDuration());
+		System.out.println("TIME CHECK END");
+		System.out.println();
+
+
+		Task task8 = new Task("New task 8", "after load 8", LocalDateTime.now(), Duration.ofMinutes(10));
+		manager1.createNewTask(task8);
+		Task task9 = new Task("New task 9", "after load 9", LocalDateTime.now(), Duration.ofMinutes(10));
+		manager1.createNewTask(task9);
+		manager1.getTaskById(task8.getId());
+		manager1.getTaskById(task9.getId());
+
+		System.out.println("AFTER LOAD AND CREATING NEW TASKS:");
+		System.out.println(manager1.getTasksList());
+		System.out.println(manager1.getEpictasksList());
+		System.out.println(manager1.getSubtasksList());
+		System.out.println("NEW HISTORY");
+		System.out.println(manager1.getHistory());
+
+		System.out.println("GET");
+		System.out.println(manager1.getTaskById(7));
+	}*/
 }

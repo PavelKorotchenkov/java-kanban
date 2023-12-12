@@ -1,5 +1,6 @@
 package ru.yandex.taskmanager.util;
 
+import ru.yandex.taskmanager.api.KVServer;
 import ru.yandex.taskmanager.service.*;
 
 import java.io.IOException;
@@ -13,15 +14,19 @@ public class Managers {
 		return new HttpTaskManager(path);
 	}
 
-	public static InMemoryTaskManager getInMemoryTaskManager(){
+	public static InMemoryTaskManager getInMemoryTaskManager() {
 		return new InMemoryTaskManager();
 	}
 
-	public static FileBackedTasksManager getFileBackedTaskManager(String path){
+	public static FileBackedTasksManager getFileBackedTaskManager(String path) {
 		return new FileBackedTasksManager(path);
 	}
 
-	public static HistoryManager getDefaultHistory(){
+	public static HistoryManager getDefaultHistory() {
 		return new InMemoryHistoryManager();
+	}
+
+	public static KVServer getDefaultKVServer() throws IOException {
+		return new KVServer();
 	}
 }

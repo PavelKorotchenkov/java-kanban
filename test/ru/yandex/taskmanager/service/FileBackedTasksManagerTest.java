@@ -2,7 +2,9 @@ package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ru.yandex.taskmanager.exception.ManagerSaveException;
 import ru.yandex.taskmanager.exception.StartEndTimeConflictException;
 import ru.yandex.taskmanager.model.Epictask;
 import ru.yandex.taskmanager.model.Status;
@@ -42,6 +44,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>
 	 */
 
 	@Test
+	@DisplayName("Метод getTasksList должен возвращать сохранённые задачи после загрузки из файла")
 	void tasksListShouldContainTaskAfterCreated() {
 		super.tasksListShouldContainTaskAfterCreated(manager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
@@ -50,6 +53,7 @@ class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>
 	}
 
 	@Test
+	@DisplayName("Загрузка File менеджера должна восстанавливать состояние сохранённого менеджера из файла")
 	void afterLoadShouldHaveSameListsSameHistoryAndIdShouldBeMaxIdCreated() {
 		manager.getTaskById(1);
 		manager.getEpictaskById(3);
@@ -483,5 +487,18 @@ class FileBackedTasksManagerTest extends TaskManagerTest<FileBackedTasksManager>
 		super.givenTaskDuration_whenChangeDuration_thenPreviousDurationShouldBeFree(manager);
 		FileBackedTasksManager fileManager2 = FileBackedTasksManager.load(file);
 		assertEquals(7, fileManager2 .getTaskById(7).getId());
+	}
+
+	/**
+	 * LOAD FILE EXCEPTION TEST
+	 * */
+	@Test
+	void givenWrongFileName_whenTryToLoadIt_shouldThrowManagerSaveException() {
+		super.shouldThrowStartEndTimeConflictExceptionWhenStartTimeConflicts(manager);
+		final ManagerSaveException exception = assertThrows(
+				ManagerSaveException.class,
+				() -> FileBackedTasksManager.load("file"));
+
+		assertEquals("Ошибка при загрузке", exception.getMessage());
 	}
 }

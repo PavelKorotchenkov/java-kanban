@@ -22,7 +22,7 @@ import java.util.List;
 public class Main {
 	public static void main(String[] args) throws IOException, InterruptedException {
 		new KVServer().start();
-		KVTaskClient client = new KVTaskClient(8078);
+		KVTaskClient client = new KVTaskClient();
 		/*client.put("mykey1", "some stuff");
 		Thread.sleep(1000);
 		String value = client.load("mykey1");

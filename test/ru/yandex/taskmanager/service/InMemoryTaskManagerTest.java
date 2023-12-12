@@ -1,6 +1,7 @@
 package ru.yandex.taskmanager.service;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.taskmanager.model.Epictask;
 
@@ -23,28 +24,34 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 		createTask("Task2", "id2", LocalDateTime.now().plusMinutes(45), Duration.ofMinutes(20));
 		sleep();
 		Epictask epic = createEpictask("Epictask", "id3");
+		sleep();
 		createEpictask("Epictask2", "id4");
+		sleep();
 		createSubtask("Subtask", "id5", LocalDateTime.now().plusMinutes(80), Duration.ofMinutes(20), epic.getId());
 		sleep();
 		createSubtask("Subtask2", "id6", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20), epic.getId());
 	}
 
 	@Test
+	@DisplayName("Метод getTasksList должен возвращать сохранённые задачи")
 	void tasksListShouldContainTaskAfterCreated() {
 		super.tasksListShouldContainTaskAfterCreated(manager);
 	}
 
 	@Test
+	@DisplayName("Метод getEpictasksList должен возвращать сохранённые эпики")
 	void epictasksListShouldContainEpicTaskAfterCreated() {
 		super.epictasksListShouldContainEpicTaskAfterCreated(manager);
 	}
 
 	@Test
+	@DisplayName("Метод getSubtasksList должен возвращать сохранённые подзадачи")
 	void subtasksListShouldContainSubTaskAfterCreated() {
 		super.subtasksListShouldContainSubTaskAfterCreated(manager);
 	}
 
 	@Test
+	@DisplayName("Методы clearTasks и clearEpictasks должен очищать списки задач, эпиков и их подзадач")
 	void tasksListsAreEmptyShouldReturnEmptyLists() {
 		super.tasksListsAreEmptyShouldReturnEmptyLists(manager);
 	}
